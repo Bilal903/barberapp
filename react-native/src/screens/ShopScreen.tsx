@@ -46,11 +46,22 @@ const ShopScreen = () => {
     try {
       console.log('ShopScreen: Starting to fetch products...');
       
-      const { data, error } = await supabase
+      // Try with is_active filter first, fallback if column doesn't exist
+      let { data, error } = await supabase
         .from('products')
         .select('*')
         .eq('is_active', true)
         .order('name');
+        
+      if (error && error.message.includes('is_active')) {
+        console.log('Products: is_active column not found, fetching all products');
+        const fallbackResponse = await supabase
+          .from('products')
+          .select('*')
+          .order('name');
+        data = fallbackResponse.data;
+        error = fallbackResponse.error;
+      }
 
       console.log('ShopScreen: Products response:', { data, error });
 

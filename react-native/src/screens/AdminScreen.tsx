@@ -121,25 +121,25 @@ const AdminScreen = () => {
             title="View Appointments"
             icon="calendar-outline"
             color="#2563eb"
-            onPress={() => Alert.alert('Info', 'Navigate to appointments management')}
+            onPress={() => navigation.navigate('Appointments' as never)}
           />
           <QuickAction
             title="Manage Products"
             icon="bag-outline"
             color="#d97706"
-            onPress={() => Alert.alert('Info', 'Navigate to products management')}
+            onPress={() => navigation.navigate('Shop' as never)}
           />
           <QuickAction
             title="Customer List"
             icon="people-outline"
             color="#059669"
-            onPress={() => Alert.alert('Info', 'Navigate to customers list')}
+            onPress={() => Alert.alert('Info', 'Customer management coming soon')}
           />
           <QuickAction
             title="Order History"
             icon="receipt-outline"
             color="#7c3aed"
-            onPress={() => Alert.alert('Info', 'Navigate to orders management')}
+            onPress={() => navigation.navigate('Orders' as never)}
           />
           <QuickAction
             title="Manage Services"

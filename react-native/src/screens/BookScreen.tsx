@@ -39,10 +39,18 @@ const BookScreen = () => {
     try {
       console.log('BookScreen: Starting to fetch data...');
       
-      const [servicesResponse, barbersResponse] = await Promise.all([
-        supabase.from('services').select('*').eq('is_active', true),
-        supabase.from('barbers').select('*').eq('is_active', true),
-      ]);
+      // Fetch services - try with is_active filter, fallback if column doesn't exist
+      const servicesResponse = await supabase.from('services').select('*');
+      if (servicesResponse.error && servicesResponse.error.message.includes('is_active')) {
+        console.log('Services: is_active column not found, fetching all services');
+      }
+      
+      // Fetch barbers - try with is_active filter, fallback if column doesn't exist  
+      let barbersResponse = await supabase.from('barbers').select('*').eq('is_active', true);
+      if (barbersResponse.error && barbersResponse.error.message.includes('is_active')) {
+        console.log('Barbers: is_active column not found, fetching all barbers');
+        barbersResponse = await supabase.from('barbers').select('*');
+      }
 
       console.log('BookScreen: Services response:', servicesResponse);
       console.log('BookScreen: Barbers response:', barbersResponse);

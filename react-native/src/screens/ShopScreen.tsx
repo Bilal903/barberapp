@@ -146,10 +146,11 @@ const ShopScreen = () => {
       console.log('Total amount:', getCartTotal());
 
       const orderItems = Object.entries(cart).map(([productId, quantity]) => {
+        const product = products.find(p => p.id === productId);
         return {
           product_id: productId,
           quantity,
-          // Remove price from order_items - it's stored in products table
+          price_per_item: product?.price || 0, // Use correct column name
         };
       });
 

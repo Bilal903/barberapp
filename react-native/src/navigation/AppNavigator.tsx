@@ -14,11 +14,15 @@ import ProfileScreen from '../screens/ProfileScreen';
 import AppointmentsScreen from '../screens/AppointmentsScreen';
 import OrdersScreen from '../screens/OrdersScreen';
 import LoadingScreen from '../screens/LoadingScreen';
+import AdminScreen from '../screens/AdminScreen';
+import ServicesScreen from '../screens/ServicesScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
 const TabNavigator = () => {
+  const { isAdmin } = useAuth();
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -35,6 +39,8 @@ const TabNavigator = () => {
             iconName = focused ? 'diamond' : 'diamond-outline';
           } else if (route.name === 'Profile') {
             iconName = focused ? 'person' : 'person-outline';
+          } else if (route.name === 'Admin') {
+            iconName = focused ? 'settings' : 'settings-outline';
           } else {
             iconName = 'help-outline';
           }
@@ -51,6 +57,15 @@ const TabNavigator = () => {
       <Tab.Screen name="Shop" component={ShopScreen} />
       <Tab.Screen name="Membership" component={MembershipScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
+      {isAdmin && (
+        <Tab.Screen 
+          name="Admin" 
+          component={AdminScreen}
+          options={{
+            tabBarLabel: 'Admin',
+          }}
+        />
+      )}
     </Tab.Navigator>
   );
 };
@@ -70,6 +85,7 @@ const AppNavigator = () => {
             <Stack.Screen name="Main" component={TabNavigator} />
             <Stack.Screen name="Appointments" component={AppointmentsScreen} />
             <Stack.Screen name="Orders" component={OrdersScreen} />
+            <Stack.Screen name="Services" component={ServicesScreen} />
           </>
         ) : (
           <Stack.Screen name="Auth" component={AuthScreen} />

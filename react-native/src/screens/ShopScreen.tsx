@@ -146,11 +146,10 @@ const ShopScreen = () => {
       console.log('Total amount:', getCartTotal());
 
       const orderItems = Object.entries(cart).map(([productId, quantity]) => {
-        const product = products.find(p => p.id === productId);
         return {
           product_id: productId,
           quantity,
-          price: product?.price || 0,
+          // Remove price from order_items - it's stored in products table
         };
       });
 

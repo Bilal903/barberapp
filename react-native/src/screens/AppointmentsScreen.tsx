@@ -9,12 +9,14 @@ import {
   RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../services/supabase';
 import { Appointment } from '../types';
 
 const AppointmentsScreen = () => {
   const { user } = useAuth();
+  const navigation = useNavigation();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -192,8 +194,16 @@ const AppointmentsScreen = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>My Appointments</Text>
-        <Text style={styles.subtitle}>Manage your bookings</Text>
+        <TouchableOpacity 
+          style={styles.backButton} 
+          onPress={() => navigation.goBack()}
+        >
+          <Ionicons name="arrow-back" size={24} color="#1f2937" />
+        </TouchableOpacity>
+        <View style={styles.headerContent}>
+          <Text style={styles.title}>My Appointments</Text>
+          <Text style={styles.subtitle}>Manage your bookings</Text>
+        </View>
       </View>
 
       {/* Filter Tabs */}
@@ -243,6 +253,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 20,
     backgroundColor: 'white',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backButton: {
+    marginRight: 16,
+    padding: 8,
+  },
+  headerContent: {
+    flex: 1,
   },
   title: {
     fontSize: 28,

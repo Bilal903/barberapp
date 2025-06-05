@@ -9,11 +9,13 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../services/supabase';
 
 const ProfileScreen = () => {
   const { user, signOut } = useAuth();
+  const navigation = useNavigation();
   const [profile, setProfile] = useState({
     full_name: '',
     phone: '',
@@ -81,7 +83,7 @@ const ProfileScreen = () => {
       title: 'My Appointments',
       subtitle: 'View and manage appointments',
       onPress: () => {
-        // Navigate to appointments
+        navigation.navigate('Appointments');
       },
     },
     {
@@ -89,7 +91,7 @@ const ProfileScreen = () => {
       title: 'Order History',
       subtitle: 'View past orders',
       onPress: () => {
-        // Navigate to orders
+        navigation.navigate('Orders');
       },
     },
     {
@@ -97,7 +99,7 @@ const ProfileScreen = () => {
       title: 'Membership',
       subtitle: 'Manage your membership',
       onPress: () => {
-        // Navigate to membership
+        navigation.navigate('Main', { screen: 'Membership' });
       },
     },
     {

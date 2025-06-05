@@ -140,6 +140,11 @@ const ShopScreen = () => {
     }
 
     try {
+      console.log('ShopScreen: Starting checkout process...');
+      console.log('Cart contents:', cart);
+      console.log('User ID:', user?.id);
+      console.log('Total amount:', getCartTotal());
+
       const orderItems = Object.entries(cart).map(([productId, quantity]) => {
         const product = products.find(p => p.id === productId);
         return {
@@ -149,17 +154,24 @@ const ShopScreen = () => {
         };
       });
 
+      console.log('Order items:', orderItems);
+
       const { data: order, error: orderError } = await supabase
         .from('orders')
         .insert({
-          customer_id: user?.id,
+          user_id: user?.id,
           total_amount: getCartTotal(),
           status: 'pending',
         })
         .select()
         .single();
 
-      if (orderError) throw orderError;
+      console.log('Order creation response:', { order, orderError });
+
+      if (orderError) {
+        console.error('Order creation error:', orderError);
+        throw orderError;
+      }
 
       const { error: itemsError } = await supabase
         .from('order_items')
@@ -170,13 +182,19 @@ const ShopScreen = () => {
           }))
         );
 
-      if (itemsError) throw itemsError;
+      console.log('Order items creation error:', itemsError);
 
+      if (itemsError) {
+        console.error('Order items creation error:', itemsError);
+        throw itemsError;
+      }
+
+      console.log('Checkout completed successfully');
       Alert.alert('Success', 'Order placed successfully!');
       setCart({});
     } catch (error) {
-      Alert.alert('Error', 'Failed to place order');
       console.error('Checkout error:', error);
+      Alert.alert('Error', `Failed to place order: ${error.message || 'Unknown error'}`);
     }
   };
 

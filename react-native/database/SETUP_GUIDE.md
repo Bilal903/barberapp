@@ -2,17 +2,17 @@
 
 ## 🚨 **URGENT: Fix Database Schema Issues**
 
-Your app is showing errors because some database columns are missing. Follow these steps to fix it:
+Your app is showing multiple errors due to database schema mismatches. Follow these steps to fix all issues:
 
-## 📋 **Step 1: Run SQL Fixes in Supabase**
+## 📋 **Step 1: Run Complete SQL Fixes in Supabase**
 
 1. **Go to your Supabase Dashboard**
 2. **Click on "SQL Editor"**
-3. **Copy and paste this SQL code:**
+3. **Copy and paste this COMPLETE SQL code:**
 
 ```sql
--- Fix Database Schema Issues
--- Add missing is_active columns
+-- Fix Database Schema Issues - COMPLETE FIX
+-- Add missing columns and fix schema mismatches
 
 -- 1. Add missing is_active column to products table
 ALTER TABLE products 
@@ -22,13 +22,41 @@ ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;
 ALTER TABLE barbers 
 ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;
 
--- 3. Update all existing records to be active
+-- 3. Fix appointments table - ensure total_amount column exists
+ALTER TABLE appointments 
+ADD COLUMN IF NOT EXISTS total_amount DECIMAL(10,2) DEFAULT 0;
+
+-- 4. Fix orders table - ensure user_id column exists (not customer_id)
+ALTER TABLE orders 
+ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES auth.users(id);
+
+-- 5. Update all existing records
 UPDATE products SET is_active = true WHERE is_active IS NULL;
 UPDATE barbers SET is_active = true WHERE is_active IS NULL;
+UPDATE appointments SET total_amount = 0 WHERE total_amount IS NULL;
 
--- 4. Add indexes for better performance
+-- 6. Add performance indexes
 CREATE INDEX IF NOT EXISTS idx_products_is_active ON products(is_active);
 CREATE INDEX IF NOT EXISTS idx_barbers_is_active ON barbers(is_active);
+CREATE INDEX IF NOT EXISTS idx_appointments_user_id ON appointments(user_id);
+CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id);
+
+-- 7. Fix foreign key relationships for appointments
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'appointments' AND column_name = 'customer_id') THEN
+        ALTER TABLE appointments ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES auth.users(id);
+        UPDATE appointments SET user_id = customer_id WHERE user_id IS NULL AND customer_id IS NOT NULL;
+    END IF;
+END $$;
+
+-- 8. Fix foreign key relationships for orders
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'orders' AND column_name = 'customer_id') THEN
+        UPDATE orders SET user_id = customer_id WHERE user_id IS NULL AND customer_id IS NOT NULL;
+    END IF;
+END $$;
 ```
 
 4. **Click "Run" to execute the SQL**
@@ -100,10 +128,12 @@ After running the SQL fixes:
 
 After fixing the database:
 
-- ✅ **Book Screen**: Shows services and barbers
-- ✅ **Shop Screen**: Shows products  
+- ✅ **Book Screen**: Shows services and barbers, booking works without errors
+- ✅ **Shop Screen**: Shows products, checkout works successfully
 - ✅ **Admin Features**: Navigate to actual management screens
-- ✅ **No Console Errors**: Database queries work properly
+- ✅ **No Console Errors**: All database queries work properly
+- ✅ **Appointments**: Can be booked with proper total_amount
+- ✅ **Orders**: Can be placed with correct user_id references
 
 ## 🚨 **If You Still Have Issues**
 

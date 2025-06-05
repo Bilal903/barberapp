@@ -87,18 +87,34 @@ const BookScreen = () => {
     }
 
     try {
-      const { error } = await supabase.from('appointments').insert({
-        customer_id: user?.id,
+      console.log('BookScreen: Starting appointment booking...');
+      console.log('User ID:', user?.id);
+      console.log('Service:', selectedService);
+      console.log('Barber:', selectedBarber);
+      console.log('Date:', selectedDate);
+      console.log('Time:', selectedTime);
+
+      const appointmentData = {
+        user_id: user?.id,
         service_id: selectedService.id,
         barber_id: selectedBarber.id,
         appointment_date: selectedDate,
         appointment_time: selectedTime,
-        status: 'scheduled',
-      });
+        total_amount: selectedService.price || 0,
+        status: 'pending',
+      };
+
+      console.log('Appointment data:', appointmentData);
+
+      const { error } = await supabase.from('appointments').insert(appointmentData);
+
+      console.log('Appointment booking response:', { error });
 
       if (error) {
-        Alert.alert('Error', error.message);
+        console.error('Appointment booking error:', error);
+        Alert.alert('Error', `Failed to book appointment: ${error.message}`);
       } else {
+        console.log('Appointment booked successfully');
         Alert.alert('Success', 'Appointment booked successfully!');
         // Reset form
         setSelectedService(null);
@@ -107,7 +123,8 @@ const BookScreen = () => {
         setSelectedTime('');
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to book appointment');
+      console.error('Booking error:', error);
+      Alert.alert('Error', `Failed to book appointment: ${error.message || 'Unknown error'}`);
     }
   };
 

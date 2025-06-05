@@ -6,11 +6,13 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../services/supabase';
 import { Service, Barber } from '../types';
+import { useFocusEffect } from '@react-navigation/native';
 
 const BookScreen = () => {
   const { user } = useAuth();
@@ -21,25 +23,53 @@ const BookScreen = () => {
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedTime, setSelectedTime] = useState<string>('');
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     fetchData();
   }, []);
 
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchData();
+    }, [])
+  );
+
   const fetchData = async () => {
     try {
+      console.log('BookScreen: Starting to fetch data...');
+      
       const [servicesResponse, barbersResponse] = await Promise.all([
         supabase.from('services').select('*').eq('is_active', true),
         supabase.from('barbers').select('*').eq('is_active', true),
       ]);
 
+      console.log('BookScreen: Services response:', servicesResponse);
+      console.log('BookScreen: Barbers response:', barbersResponse);
+
+      if (servicesResponse.error) {
+        console.error('Services error:', servicesResponse.error);
+      }
+      if (barbersResponse.error) {
+        console.error('Barbers error:', barbersResponse.error);
+      }
+
       setServices(servicesResponse.data || []);
       setBarbers(barbersResponse.data || []);
+      
+      console.log('BookScreen: Data set successfully');
     } catch (error) {
       console.error('Error fetching data:', error);
+      Alert.alert('Error', 'Failed to load data. Please try again.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchData();
+    setRefreshing(false);
   };
 
   const bookAppointment = async () => {
@@ -99,7 +129,12 @@ const BookScreen = () => {
   }
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView 
+      style={styles.container}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+    >
       <View style={styles.header}>
         <Text style={styles.title}>Book Appointment</Text>
         <Text style={styles.subtitle}>Choose your service and preferred time</Text>

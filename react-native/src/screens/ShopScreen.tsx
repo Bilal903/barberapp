@@ -8,11 +8,13 @@ import {
   Image,
   Alert,
   TextInput,
+  RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../services/supabase';
 import { Product } from '../types';
+import { useFocusEffect } from '@react-navigation/native';
 
 const ShopScreen = () => {
   const { user } = useAuth();
@@ -22,6 +24,7 @@ const ShopScreen = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [cart, setCart] = useState<{ [key: string]: number }>({});
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   const categories = ['All', 'Hair Care', 'Styling', 'Beard Care', 'Tools'];
 
@@ -33,20 +36,43 @@ const ShopScreen = () => {
     filterProducts();
   }, [products, searchQuery, selectedCategory]);
 
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchProducts();
+    }, [])
+  );
+
   const fetchProducts = async () => {
     try {
-      const { data } = await supabase
+      console.log('ShopScreen: Starting to fetch products...');
+      
+      const { data, error } = await supabase
         .from('products')
         .select('*')
         .eq('is_active', true)
         .order('name');
 
+      console.log('ShopScreen: Products response:', { data, error });
+
+      if (error) {
+        console.error('Products error:', error);
+        Alert.alert('Error', 'Failed to load products. Please try again.');
+      }
+
       setProducts(data || []);
+      console.log('ShopScreen: Products set successfully, count:', data?.length || 0);
     } catch (error) {
       console.error('Error fetching products:', error);
+      Alert.alert('Error', 'Failed to load products. Please try again.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchProducts();
+    setRefreshing(false);
   };
 
   const filterProducts = () => {
@@ -233,7 +259,12 @@ const ShopScreen = () => {
       </ScrollView>
 
       {/* Products */}
-      <ScrollView style={styles.productsContainer}>
+      <ScrollView 
+        style={styles.productsContainer}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         <View style={styles.productsGrid}>
           {filteredProducts.map((product) => (
             <ProductCard key={product.id} product={product} />

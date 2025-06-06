@@ -220,7 +220,7 @@ const ShopScreen = () => {
                   style={styles.quantityButton}
                   onPress={() => removeFromCart(product.id)}
                 >
-                  <Ionicons name="remove" size={16} color="#2563eb" />
+                  <Ionicons name="remove" size={18} color="white" />
                 </TouchableOpacity>
               )}
               {quantity > 0 && (
@@ -230,7 +230,7 @@ const ShopScreen = () => {
                 style={styles.quantityButton}
                 onPress={() => addToCart(product.id)}
               >
-                <Ionicons name="add" size={16} color="#2563eb" />
+                <Ionicons name="add" size={18} color="white" />
               </TouchableOpacity>
             </View>
           </View>
@@ -347,10 +347,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'white',
-    marginHorizontal: 20,
-    marginTop: 16,
-    borderRadius: 12,
-    paddingHorizontal: 16,
+    marginHorizontal: 16,
+    marginTop: 12,
+    borderRadius: 25,
+    paddingHorizontal: 20,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -359,6 +359,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2,
+    height: 50,
   },
   searchIcon: {
     marginRight: 12,
@@ -366,21 +367,25 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 16,
-    paddingVertical: 16,
     color: '#1f2937',
+    paddingVertical: 0,
   },
   categoriesScroll: {
-    marginTop: 16,
+    marginTop: 12,
     marginHorizontal: 20,
+    maxHeight: 50,
   },
   categoryButton: {
     backgroundColor: 'white',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    marginRight: 12,
+    borderRadius: 25,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    marginRight: 8,
     borderWidth: 1,
     borderColor: '#e5e7eb',
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   selectedCategoryButton: {
     backgroundColor: '#2563eb',
@@ -396,19 +401,20 @@ const styles = StyleSheet.create({
   },
   productsContainer: {
     flex: 1,
-    marginTop: 16,
+    marginTop: 12,
   },
   productsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     justifyContent: 'space-between',
+    paddingBottom: 100,
   },
   productCard: {
     backgroundColor: 'white',
     borderRadius: 12,
     width: '48%',
-    marginBottom: 16,
+    marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -417,27 +423,29 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    overflow: 'hidden',
   },
   productImage: {
     width: '100%',
-    height: 120,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
+    height: 140,
     backgroundColor: '#f3f4f6',
+    resizeMode: 'cover',
   },
   productInfo: {
-    padding: 12,
+    padding: 16,
+    flex: 1,
   },
   productName: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '700',
     color: '#1f2937',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   productDescription: {
-    fontSize: 12,
+    fontSize: 13,
     color: '#6b7280',
-    marginBottom: 8,
+    marginBottom: 12,
+    lineHeight: 18,
   },
   productFooter: {
     flexDirection: 'row',
@@ -445,23 +453,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   productPrice: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '800',
     color: '#2563eb',
   },
   quantityControls: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#f8fafc',
+    borderRadius: 20,
+    paddingHorizontal: 4,
   },
   quantityButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#eff6ff',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#2563eb',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#2563eb',
+    margin: 2,
   },
   quantityText: {
     fontSize: 14,

@@ -7,14 +7,17 @@ import {
   StyleSheet,
   TextInput,
   Alert,
+  Switch,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../hooks/useAuth';
+import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../services/supabase';
 
 const ProfileScreen = () => {
   const { user, signOut } = useAuth();
+  const { theme, isDark, toggleTheme } = useTheme();
   const navigation = useNavigation();
   const [profile, setProfile] = useState({
     full_name: '',
@@ -111,6 +114,13 @@ const ProfileScreen = () => {
       },
     },
     {
+      icon: isDark ? 'sunny-outline' : 'moon-outline',
+      title: 'Dark Mode',
+      subtitle: isDark ? 'Switch to light mode' : 'Switch to dark mode',
+      onPress: toggleTheme,
+      showToggle: true,
+    },
+    {
       icon: 'help-circle-outline',
       title: 'Help & Support',
       subtitle: 'Get help and contact support',
@@ -129,33 +139,42 @@ const ProfileScreen = () => {
   ];
 
   const MenuItem = ({ item }: { item: any }) => (
-    <TouchableOpacity style={styles.menuItem} onPress={item.onPress}>
+    <TouchableOpacity style={[styles.menuItem, { backgroundColor: theme.colors.surface }]} onPress={item.onPress}>
       <View style={styles.menuItemLeft}>
-        <Ionicons name={item.icon} size={24} color="#6b7280" />
+        <Ionicons name={item.icon} size={24} color={theme.colors.textSecondary} />
         <View style={styles.menuItemText}>
-          <Text style={styles.menuItemTitle}>{item.title}</Text>
-          <Text style={styles.menuItemSubtitle}>{item.subtitle}</Text>
+          <Text style={[styles.menuItemTitle, { color: theme.colors.text }]}>{item.title}</Text>
+          <Text style={[styles.menuItemSubtitle, { color: theme.colors.textSecondary }]}>{item.subtitle}</Text>
         </View>
       </View>
-      <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+      {item.showToggle ? (
+        <Switch
+          value={isDark}
+          onValueChange={toggleTheme}
+          trackColor={{ false: '#e5e7eb', true: theme.colors.primary }}
+          thumbColor={isDark ? '#ffffff' : '#f4f3f4'}
+        />
+      ) : (
+        <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
+      )}
     </TouchableOpacity>
   );
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Profile</Text>
+    <ScrollView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <View style={[styles.header, { backgroundColor: theme.colors.surface }]}>
+        <Text style={[styles.title, { color: theme.colors.text }]}>Profile</Text>
         <TouchableOpacity onPress={signOut} style={styles.signOutButton}>
-          <Ionicons name="log-out-outline" size={24} color="#ef4444" />
+          <Ionicons name="log-out-outline" size={24} color={theme.colors.error} />
         </TouchableOpacity>
       </View>
 
       {/* Profile Info */}
       <View style={styles.profileSection}>
-        <View style={styles.profileCard}>
+        <View style={[styles.profileCard, { backgroundColor: theme.colors.surface }]}>
           <View style={styles.profileHeader}>
-            <View style={styles.avatar}>
-              <Ionicons name="person" size={32} color="#6b7280" />
+            <View style={[styles.avatar, { backgroundColor: theme.colors.background }]}>
+              <Ionicons name="person" size={32} color={theme.colors.textSecondary} />
             </View>
             <TouchableOpacity
               style={styles.editButton}
@@ -164,52 +183,83 @@ const ProfileScreen = () => {
               <Ionicons
                 name={editing ? 'close' : 'pencil'}
                 size={20}
-                color="#2563eb"
+                color={theme.colors.primary}
               />
             </TouchableOpacity>
           </View>
 
           <View style={styles.profileForm}>
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Full Name</Text>
+              <Text style={[styles.inputLabel, { color: theme.colors.text }]}>Full Name</Text>
               <TextInput
-                style={[styles.input, !editing && styles.inputDisabled]}
+                style={[
+                  styles.input, 
+                  { 
+                    backgroundColor: theme.colors.background, 
+                    color: theme.colors.text,
+                    borderColor: theme.colors.border 
+                  },
+                  !editing && styles.inputDisabled
+                ]}
                 value={profile.full_name}
                 onChangeText={(text) => setProfile({ ...profile, full_name: text })}
                 editable={editing}
                 placeholder="Enter your full name"
+                placeholderTextColor={theme.colors.textSecondary}
               />
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Email</Text>
+              <Text style={[styles.inputLabel, { color: theme.colors.text }]}>Email</Text>
               <TextInput
-                style={[styles.input, styles.inputDisabled]}
+                style={[
+                  styles.input, 
+                  { 
+                    backgroundColor: theme.colors.background, 
+                    color: theme.colors.text,
+                    borderColor: theme.colors.border 
+                  },
+                  styles.inputDisabled
+                ]}
                 value={profile.email}
                 editable={false}
                 placeholder="Email address"
+                placeholderTextColor={theme.colors.textSecondary}
               />
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Phone</Text>
+              <Text style={[styles.inputLabel, { color: theme.colors.text }]}>Phone</Text>
               <TextInput
-                style={[styles.input, !editing && styles.inputDisabled]}
+                style={[
+                  styles.input, 
+                  { 
+                    backgroundColor: theme.colors.background, 
+                    color: theme.colors.text,
+                    borderColor: theme.colors.border 
+                  },
+                  !editing && styles.inputDisabled
+                ]}
                 value={profile.phone}
                 onChangeText={(text) => setProfile({ ...profile, phone: text })}
                 editable={editing}
                 placeholder="Enter your phone number"
+                placeholderTextColor={theme.colors.textSecondary}
                 keyboardType="phone-pad"
               />
             </View>
 
             {editing && (
               <TouchableOpacity
-                style={[styles.saveButton, loading && styles.saveButtonDisabled]}
+                style={[
+                  styles.saveButton, 
+                  { backgroundColor: theme.colors.primary },
+                  loading && styles.saveButtonDisabled
+                ]}
                 onPress={updateProfile}
                 disabled={loading}
               >
-                <Text style={styles.saveButtonText}>
+                <Text style={[styles.saveButtonText, { color: theme.colors.white }]}>
                   {loading ? 'Saving...' : 'Save Changes'}
                 </Text>
               </TouchableOpacity>
@@ -227,10 +277,10 @@ const ProfileScreen = () => {
 
       {/* Sign Out */}
       <View style={styles.signOutSection}>
-        <TouchableOpacity style={styles.signOutMenuItem} onPress={signOut}>
+        <TouchableOpacity style={[styles.signOutMenuItem, { backgroundColor: theme.colors.surface }]} onPress={signOut}>
           <View style={styles.menuItemLeft}>
-            <Ionicons name="log-out-outline" size={24} color="#ef4444" />
-            <Text style={[styles.menuItemTitle, { color: '#ef4444' }]}>Sign Out</Text>
+            <Ionicons name="log-out-outline" size={24} color={theme.colors.error} />
+            <Text style={[styles.menuItemTitle, { color: theme.colors.error }]}>Sign Out</Text>
           </View>
         </TouchableOpacity>
       </View>

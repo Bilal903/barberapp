@@ -10,12 +10,14 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../hooks/useAuth';
+import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../services/supabase';
 import { Appointment } from '../types';
 
 const HomeScreen = () => {
   const navigation = useNavigation();
   const { user, signOut } = useAuth();
+  const { theme } = useTheme();
   const [nextAppointment, setNextAppointment] = useState<Appointment | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -60,27 +62,27 @@ const HomeScreen = () => {
   };
 
   const QuickActionCard = ({ icon, title, subtitle, onPress, color }: any) => (
-    <TouchableOpacity style={styles.quickActionCard} onPress={onPress}>
+    <TouchableOpacity style={[styles.quickActionCard, { backgroundColor: theme.colors.surface }]} onPress={onPress}>
       <Ionicons name={icon} size={32} color={color} style={styles.quickActionIcon} />
-      <Text style={styles.quickActionTitle}>{title}</Text>
-      <Text style={styles.quickActionSubtitle}>{subtitle}</Text>
+      <Text style={[styles.quickActionTitle, { color: theme.colors.text }]}>{title}</Text>
+      <Text style={[styles.quickActionSubtitle, { color: theme.colors.textSecondary }]}>{subtitle}</Text>
     </TouchableOpacity>
   );
 
   const ServiceCard = ({ name, duration, price, rating }: any) => (
-    <View style={styles.serviceCard}>
+    <View style={[styles.serviceCard, { backgroundColor: theme.colors.surface }]}>
       <View style={styles.serviceInfo}>
-        <Text style={styles.serviceName}>{name}</Text>
+        <Text style={[styles.serviceName, { color: theme.colors.text }]}>{name}</Text>
         <View style={styles.serviceDetails}>
-          <Ionicons name="time-outline" size={14} color="#6b7280" />
-          <Text style={styles.serviceDetailText}>{duration} min</Text>
+          <Ionicons name="time-outline" size={14} color={theme.colors.textSecondary} />
+          <Text style={[styles.serviceDetailText, { color: theme.colors.textSecondary }]}>{duration} min</Text>
         </View>
       </View>
       <View style={styles.servicePricing}>
-        <Text style={styles.servicePrice}>${price}</Text>
+        <Text style={[styles.servicePrice, { color: theme.colors.primary }]}>${price}</Text>
         <View style={styles.serviceRating}>
           <Ionicons name="star" size={14} color="#fbbf24" />
-          <Text style={styles.ratingText}>{rating}</Text>
+          <Text style={[styles.ratingText, { color: theme.colors.textSecondary }]}>{rating}</Text>
         </View>
       </View>
     </View>
@@ -88,18 +90,18 @@ const HomeScreen = () => {
 
   return (
     <ScrollView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: theme.colors.primary }]}>
         <View style={styles.headerContent}>
           <View>
-            <Text style={styles.welcomeText}>Welcome back!</Text>
-            <Text style={styles.subtitle}>Ready for your next grooming session?</Text>
+            <Text style={[styles.welcomeText, { color: theme.colors.white }]}>Welcome back!</Text>
+            <Text style={[styles.subtitle, { color: theme.colors.white }]}>Ready for your next grooming session?</Text>
           </View>
           <TouchableOpacity onPress={signOut} style={styles.signOutButton}>
-            <Ionicons name="log-out-outline" size={24} color="white" />
+            <Ionicons name="log-out-outline" size={24} color={theme.colors.white} />
           </TouchableOpacity>
         </View>
       </View>
@@ -127,24 +129,24 @@ const HomeScreen = () => {
       {/* Next Appointment */}
       {nextAppointment && (
         <View style={styles.section}>
-          <View style={styles.card}>
+          <View style={[styles.card, { backgroundColor: theme.colors.surface }]}>
             <View style={styles.cardHeader}>
-              <Ionicons name="calendar" size={20} color="#2563eb" />
-              <Text style={styles.cardTitle}>Next Appointment</Text>
+              <Ionicons name="calendar" size={20} color={theme.colors.primary} />
+              <Text style={[styles.cardTitle, { color: theme.colors.text }]}>Next Appointment</Text>
             </View>
             <View style={styles.appointmentDetails}>
               <View style={styles.appointmentRow}>
-                <Text style={styles.appointmentService}>{nextAppointment.services?.name}</Text>
-                <Text style={styles.appointmentDuration}>{nextAppointment.services?.duration} min</Text>
+                <Text style={[styles.appointmentService, { color: theme.colors.text }]}>{nextAppointment.services?.name}</Text>
+                <Text style={[styles.appointmentDuration, { color: theme.colors.textSecondary }]}>{nextAppointment.services?.duration} min</Text>
               </View>
               <View style={styles.appointmentRow}>
-                <Text style={styles.appointmentBarber}>with {nextAppointment.barbers?.name}</Text>
-                <Text style={styles.appointmentDateTime}>
+                <Text style={[styles.appointmentBarber, { color: theme.colors.textSecondary }]}>with {nextAppointment.barbers?.name}</Text>
+                <Text style={[styles.appointmentDateTime, { color: theme.colors.textSecondary }]}>
                   {new Date(nextAppointment.appointment_date).toLocaleDateString()} at {nextAppointment.appointment_time}
                 </Text>
               </View>
-              <TouchableOpacity style={styles.viewDetailsButton}>
-                <Text style={styles.viewDetailsText}>View Details</Text>
+              <TouchableOpacity style={[styles.viewDetailsButton, { backgroundColor: theme.colors.primary }]}>
+                <Text style={[styles.viewDetailsText, { color: theme.colors.white }]}>View Details</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -153,20 +155,20 @@ const HomeScreen = () => {
 
       {/* Membership Upsell */}
       <View style={styles.section}>
-        <View style={[styles.card, styles.membershipCard]}>
+        <View style={[styles.card, styles.membershipCard, { backgroundColor: theme.colors.surface }]}>
           <View style={styles.membershipContent}>
             <View>
               <View style={styles.membershipHeader}>
                 <Ionicons name="diamond" size={16} color="#d97706" />
-                <Text style={styles.membershipTitle}>Premium Membership</Text>
+                <Text style={[styles.membershipTitle, { color: theme.colors.text }]}>Premium Membership</Text>
               </View>
-              <Text style={styles.membershipSubtitle}>Save up to 25% on all services</Text>
+              <Text style={[styles.membershipSubtitle, { color: theme.colors.textSecondary }]}>Save up to 25% on all services</Text>
             </View>
             <TouchableOpacity
-              style={styles.membershipButton}
+              style={[styles.membershipButton, { backgroundColor: theme.colors.primary }]}
               onPress={() => navigation.navigate('Membership' as never)}
             >
-              <Text style={styles.membershipButtonText}>Learn More</Text>
+              <Text style={[styles.membershipButtonText, { color: theme.colors.white }]}>Learn More</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -174,8 +176,8 @@ const HomeScreen = () => {
 
       {/* Featured Services */}
       <View style={styles.section}>
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Popular Services</Text>
+        <View style={[styles.card, { backgroundColor: theme.colors.surface }]}>
+          <Text style={[styles.cardTitle, { color: theme.colors.text }]}>Popular Services</Text>
           <View style={styles.servicesContainer}>
             <ServiceCard
               name="Classic Haircut"
@@ -191,10 +193,10 @@ const HomeScreen = () => {
             />
           </View>
           <TouchableOpacity
-            style={styles.bookServiceButton}
+            style={[styles.bookServiceButton, { backgroundColor: theme.colors.primary }]}
             onPress={() => navigation.navigate('Book' as never)}
           >
-            <Text style={styles.bookServiceText}>Book a Service</Text>
+            <Text style={[styles.bookServiceText, { color: theme.colors.white }]}>Book a Service</Text>
           </TouchableOpacity>
         </View>
       </View>

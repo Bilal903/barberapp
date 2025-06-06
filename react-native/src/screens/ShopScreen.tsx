@@ -12,12 +12,14 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../hooks/useAuth';
+import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../services/supabase';
 import { Product } from '../types';
 import { useFocusEffect } from '@react-navigation/native';
 
 const ShopScreen = () => {
   const { user } = useAuth();
+  const { theme } = useTheme();
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -202,18 +204,18 @@ const ShopScreen = () => {
     const quantity = cart[product.id] || 0;
 
     return (
-      <View style={styles.productCard}>
+      <View style={[styles.productCard, { backgroundColor: theme.colors.surface }]}>
         <Image
           source={{ uri: product.image_url || 'https://via.placeholder.com/150' }}
           style={styles.productImage}
         />
         <View style={styles.productInfo}>
-          <Text style={styles.productName}>{product.name}</Text>
-          <Text style={styles.productDescription} numberOfLines={2}>
+          <Text style={[styles.productName, { color: theme.colors.text }]}>{product.name}</Text>
+          <Text style={[styles.productDescription, { color: theme.colors.textSecondary }]} numberOfLines={2}>
             {product.description}
           </Text>
           <View style={styles.productFooter}>
-            <Text style={styles.productPrice}>${product.price.toFixed(2)}</Text>
+            <Text style={[styles.productPrice, { color: theme.colors.primary }]}>${product.price.toFixed(2)}</Text>
             <View style={styles.quantityControls}>
               {quantity > 0 && (
                 <TouchableOpacity
@@ -224,7 +226,7 @@ const ShopScreen = () => {
                 </TouchableOpacity>
               )}
               {quantity > 0 && (
-                <Text style={styles.quantityText}>{quantity}</Text>
+                <Text style={[styles.quantityText, { color: theme.colors.text }]}>{quantity}</Text>
               )}
               <TouchableOpacity
                 style={styles.quantityButton}
@@ -241,26 +243,27 @@ const ShopScreen = () => {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <Text>Loading products...</Text>
+      <View style={[styles.loadingContainer, { backgroundColor: theme.colors.background }]}>
+        <Text style={{ color: theme.colors.text }}>Loading products...</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.title}>Shop</Text>
-        <Text style={styles.subtitle}>Premium hair care products</Text>
+      <View style={[styles.header, { backgroundColor: theme.colors.surface }]}>
+        <Text style={[styles.title, { color: theme.colors.text }]}>Shop</Text>
+        <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>Premium hair care products</Text>
       </View>
 
       {/* Search */}
-      <View style={styles.searchContainer}>
-        <Ionicons name="search" size={20} color="#6b7280" style={styles.searchIcon} />
+      <View style={[styles.searchContainer, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+        <Ionicons name="search" size={20} color={theme.colors.textSecondary} style={styles.searchIcon} />
         <TextInput
-          style={styles.searchInput}
+          style={[styles.searchInput, { color: theme.colors.text }]}
           placeholder="Search products..."
+          placeholderTextColor={theme.colors.textSecondary}
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
@@ -273,13 +276,18 @@ const ShopScreen = () => {
             key={category}
             style={[
               styles.categoryButton,
-              selectedCategory === category && styles.selectedCategoryButton,
+              { 
+                backgroundColor: selectedCategory === category ? theme.colors.primary : theme.colors.surface,
+                borderColor: theme.colors.border 
+              },
             ]}
             onPress={() => setSelectedCategory(category)}
           >
             <Text style={[
               styles.categoryText,
-              selectedCategory === category && styles.selectedCategoryText,
+              { 
+                color: selectedCategory === category ? theme.colors.white : theme.colors.text 
+              },
             ]}>
               {category}
             </Text>

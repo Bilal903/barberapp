@@ -10,6 +10,9 @@ interface ProtectedRouteProps {
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
 
+  // Development bypass - remove this in production
+  const isDevelopment = import.meta.env.DEV;
+  
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -18,7 +21,8 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     );
   }
 
-  if (!user) {
+  // Allow access in development mode without authentication
+  if (!user && !isDevelopment) {
     return <Navigate to="/auth" replace />;
   }
 

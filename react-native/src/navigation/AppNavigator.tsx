@@ -3,6 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
+import { RootStackParamList, TabParamList } from '../types/navigation';
 
 import { useAuth } from '../hooks/useAuth';
 import AuthScreen from '../screens/AuthScreen';
@@ -20,8 +21,8 @@ import NotificationPreferencesScreen from '../screens/NotificationPreferencesScr
 import ReportsScreen from '../screens/ReportsScreen';
 import CustomerManagementScreen from '../screens/CustomerManagementScreen';
 
-const Stack = createStackNavigator();
-const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator<RootStackParamList>();
+const Tab = createBottomTabNavigator<TabParamList>();
 
 const TabNavigator = () => {
   const { isAdmin } = useAuth();

@@ -100,16 +100,6 @@ const OrdersScreen = () => {
     }
   };
 
-  const toggleOrderExpansion = (orderId: string) => {
-    const newExpanded = new Set(expandedOrders);
-    if (newExpanded.has(orderId)) {
-      newExpanded.delete(orderId);
-    } else {
-      newExpanded.add(orderId);
-    }
-    setExpandedOrders(newExpanded);
-  };
-
   const OrderCard = ({ order }: { order: Order }) => {
     const isExpanded = expandedOrders.has(order.id);
     

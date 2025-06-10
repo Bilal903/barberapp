@@ -130,10 +130,10 @@ const AdminScreen = () => {
             onPress={() => navigation.navigate('Shop' as never)}
           />
           <QuickAction
-            title="Customer List"
+            title="Customer Management"
             icon="people-outline"
             color="#059669"
-            onPress={() => Alert.alert('Info', 'Customer management coming soon')}
+            onPress={() => navigation.navigate('CustomerManagement' as never)}
           />
           <QuickAction
             title="Order History"
@@ -151,7 +151,7 @@ const AdminScreen = () => {
             title="View Reports"
             icon="analytics-outline"
             color="#8b5cf6"
-            onPress={() => Alert.alert('Info', 'Reports feature coming soon')}
+            onPress={() => navigation.navigate('Reports' as never)}
           />
         </View>
       </View>

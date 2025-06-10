@@ -16,6 +16,9 @@ import OrdersScreen from '../screens/OrdersScreen';
 import LoadingScreen from '../screens/LoadingScreen';
 import AdminScreen from '../screens/AdminScreen';
 import ServicesScreen from '../screens/ServicesScreen';
+import NotificationPreferencesScreen from '../screens/NotificationPreferencesScreen';
+import ReportsScreen from '../screens/ReportsScreen';
+import CustomerManagementScreen from '../screens/CustomerManagementScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -86,6 +89,9 @@ const AppNavigator = () => {
             <Stack.Screen name="Appointments" component={AppointmentsScreen} />
             <Stack.Screen name="Orders" component={OrdersScreen} />
             <Stack.Screen name="Services" component={ServicesScreen} />
+            <Stack.Screen name="NotificationPreferences" component={NotificationPreferencesScreen} />
+            <Stack.Screen name="Reports" component={ReportsScreen} />
+            <Stack.Screen name="CustomerManagement" component={CustomerManagementScreen} />
           </>
         ) : (
           <Stack.Screen name="Auth" component={AuthScreen} />

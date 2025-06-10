@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   RefreshControl,
+  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -19,6 +20,7 @@ const OrdersScreen = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetchOrders();
@@ -52,6 +54,16 @@ const OrdersScreen = () => {
   const onRefresh = () => {
     setRefreshing(true);
     fetchOrders();
+  };
+
+  const toggleOrderExpansion = (orderId: string) => {
+    const newExpanded = new Set(expandedOrders);
+    if (newExpanded.has(orderId)) {
+      newExpanded.delete(orderId);
+    } else {
+      newExpanded.add(orderId);
+    }
+    setExpandedOrders(newExpanded);
   };
 
   const getStatusColor = (status: string) => {
@@ -88,49 +100,150 @@ const OrdersScreen = () => {
     }
   };
 
-  const OrderCard = ({ order }: { order: Order }) => (
-    <View style={styles.orderCard}>
-      <View style={styles.orderHeader}>
-        <View style={styles.orderInfo}>
-          <Text style={styles.orderNumber}>Order #{order.id.slice(-8)}</Text>
-          <Text style={styles.orderDate}>
-            {new Date(order.created_at).toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'short',
-              day: 'numeric',
-            })}
-          </Text>
-        </View>
-        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(order.status) }]}>
-          <Ionicons
-            name={getStatusIcon(order.status)}
-            size={16}
-            color="white"
-          />
-          <Text style={styles.statusText}>{order.status}</Text>
-        </View>
-      </View>
+  const toggleOrderExpansion = (orderId: string) => {
+    const newExpanded = new Set(expandedOrders);
+    if (newExpanded.has(orderId)) {
+      newExpanded.delete(orderId);
+    } else {
+      newExpanded.add(orderId);
+    }
+    setExpandedOrders(newExpanded);
+  };
 
-      <View style={styles.orderItems}>
-        {order.order_items?.map((item, index) => (
-          <View key={index} style={styles.orderItem}>
-            <Text style={styles.itemName}>{item.products?.name}</Text>
-            <View style={styles.itemDetails}>
-              <Text style={styles.itemQuantity}>Qty: {item.quantity}</Text>
-              <Text style={styles.itemPrice}>${item.price.toFixed(2)}</Text>
-            </View>
+  const OrderCard = ({ order }: { order: Order }) => {
+    const isExpanded = expandedOrders.has(order.id);
+    
+    return (
+      <View style={styles.orderCard}>
+        <TouchableOpacity 
+          style={styles.orderHeader}
+          onPress={() => toggleOrderExpansion(order.id)}
+        >
+          <View style={styles.orderInfo}>
+            <Text style={styles.orderNumber}>Order #{order.id.slice(-8)}</Text>
+            <Text style={styles.orderDate}>
+              {new Date(order.created_at).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
+            </Text>
           </View>
-        ))}
-      </View>
+          <View style={styles.orderHeaderRight}>
+            <View style={[styles.statusBadge, { backgroundColor: getStatusColor(order.status) }]}>
+              <Ionicons
+                name={getStatusIcon(order.status)}
+                size={16}
+                color="white"
+              />
+              <Text style={styles.statusText}>{order.status}</Text>
+            </View>
+            <Ionicons 
+              name={isExpanded ? 'chevron-up' : 'chevron-down'} 
+              size={20} 
+              color="#6b7280" 
+              style={styles.expandIcon}
+            />
+          </View>
+        </TouchableOpacity>
 
-      <View style={styles.orderFooter}>
-        <View style={styles.totalContainer}>
-          <Text style={styles.totalLabel}>Total:</Text>
+        {/* Quick Summary */}
+        <View style={styles.orderSummary}>
+          <Text style={styles.itemCount}>
+            {order.order_items?.length || 0} item{(order.order_items?.length || 0) !== 1 ? 's' : ''}
+          </Text>
           <Text style={styles.totalAmount}>${order.total_amount.toFixed(2)}</Text>
         </View>
+
+        {/* Expanded Details */}
+        {isExpanded && (
+          <View style={styles.expandedContent}>
+            <View style={styles.orderDetails}>
+              <View style={styles.detailRow}>
+                <Ionicons name="receipt-outline" size={16} color="#6b7280" />
+                <Text style={styles.detailLabel}>Order ID:</Text>
+                <Text style={styles.detailValue}>{order.id}</Text>
+              </View>
+              
+              <View style={styles.detailRow}>
+                <Ionicons name="time-outline" size={16} color="#6b7280" />
+                <Text style={styles.detailLabel}>Placed:</Text>
+                <Text style={styles.detailValue}>
+                  {new Date(order.created_at).toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </Text>
+              </View>
+
+              <View style={styles.detailRow}>
+                <Ionicons name="card-outline" size={16} color="#6b7280" />
+                <Text style={styles.detailLabel}>Payment:</Text>
+                <Text style={styles.detailValue}>Card ending in ****</Text>
+              </View>
+            </View>
+
+            <View style={styles.orderItems}>
+              <Text style={styles.itemsHeader}>Items Ordered:</Text>
+              {order.order_items?.map((item, index) => (
+                <View key={index} style={styles.orderItem}>
+                  <View style={styles.itemInfo}>
+                    <Text style={styles.itemName}>{item.products?.name}</Text>
+                    <Text style={styles.itemDescription}>
+                      {item.products?.description || 'Premium barber product'}
+                    </Text>
+                  </View>
+                  <View style={styles.itemDetails}>
+                    <Text style={styles.itemQuantity}>Qty: {item.quantity}</Text>
+                    <Text style={styles.itemPrice}>${item.price.toFixed(2)}</Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+
+            <View style={styles.orderFooter}>
+              <View style={styles.totalBreakdown}>
+                <View style={styles.totalRow}>
+                  <Text style={styles.totalLabel}>Subtotal:</Text>
+                  <Text style={styles.totalValue}>
+                    ${(order.total_amount * 0.9).toFixed(2)}
+                  </Text>
+                </View>
+                <View style={styles.totalRow}>
+                  <Text style={styles.totalLabel}>Tax:</Text>
+                  <Text style={styles.totalValue}>
+                    ${(order.total_amount * 0.1).toFixed(2)}
+                  </Text>
+                </View>
+                <View style={[styles.totalRow, styles.finalTotal]}>
+                  <Text style={styles.finalTotalLabel}>Total:</Text>
+                  <Text style={styles.finalTotalAmount}>${order.total_amount.toFixed(2)}</Text>
+                </View>
+              </View>
+
+              <View style={styles.orderActions}>
+                <TouchableOpacity style={styles.actionButton}>
+                  <Ionicons name="download-outline" size={16} color="#2563eb" />
+                  <Text style={styles.actionButtonText}>Download Receipt</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity style={styles.actionButton}>
+                  <Ionicons name="refresh-outline" size={16} color="#059669" />
+                  <Text style={styles.actionButtonText}>Reorder</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        )}
       </View>
-    </View>
-  );
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -250,7 +363,111 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
+    paddingBottom: 12,
+  },
+  orderHeaderRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  expandIcon: {
+    marginLeft: 4,
+  },
+  orderSummary: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  itemCount: {
+    fontSize: 14,
+    color: '#6b7280',
+  },
+  expandedContent: {
+    paddingTop: 16,
+  },
+  orderDetails: {
+    marginBottom: 16,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  detailLabel: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginLeft: 8,
+    marginRight: 8,
+    minWidth: 60,
+  },
+  detailValue: {
+    fontSize: 14,
+    color: '#374151',
+    flex: 1,
+  },
+  itemsHeader: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1f2937',
     marginBottom: 12,
+  },
+  itemInfo: {
+    flex: 1,
+  },
+  itemDescription: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginTop: 2,
+  },
+  totalBreakdown: {
+    marginBottom: 16,
+  },
+  totalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  totalValue: {
+    fontSize: 14,
+    color: '#374151',
+  },
+  finalTotal: {
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+    paddingTop: 8,
+    marginTop: 8,
+  },
+  finalTotalLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  finalTotalAmount: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2563eb',
+  },
+  orderActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f3f4f6',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    gap: 4,
+  },
+  actionButtonText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#374151',
   },
   orderInfo: {
     flex: 1,

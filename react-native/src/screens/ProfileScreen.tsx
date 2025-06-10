@@ -26,9 +26,19 @@ const ProfileScreen = () => {
   });
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [appointmentStats, setAppointmentStats] = useState({
+    upcoming: 0,
+    completed: 0,
+    total: 0,
+  });
+  const [orderStats, setOrderStats] = useState({
+    total: 0,
+    totalSpent: 0,
+  });
 
   useEffect(() => {
     fetchProfile();
+    fetchStats();
   }, [user]);
 
   const fetchProfile = async () => {
@@ -50,6 +60,50 @@ const ProfileScreen = () => {
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
+    }
+  };
+
+  const fetchStats = async () => {
+    if (!user) return;
+
+    try {
+      // Fetch appointment stats
+      const { data: appointments } = await supabase
+        .from('appointments')
+        .select('status, appointment_date')
+        .eq('customer_id', user.id);
+
+      if (appointments) {
+        const today = new Date().toISOString().split('T')[0];
+        const upcoming = appointments.filter(
+          (apt) => apt.appointment_date >= today && apt.status === 'scheduled'
+        ).length;
+        const completed = appointments.filter(
+          (apt) => apt.status === 'completed'
+        ).length;
+
+        setAppointmentStats({
+          upcoming,
+          completed,
+          total: appointments.length,
+        });
+      }
+
+      // Fetch order stats
+      const { data: orders } = await supabase
+        .from('orders')
+        .select('total_amount')
+        .eq('customer_id', user.id);
+
+      if (orders) {
+        const totalSpent = orders.reduce((sum, order) => sum + order.total_amount, 0);
+        setOrderStats({
+          total: orders.length,
+          totalSpent,
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching stats:', error);
     }
   };
 
@@ -107,10 +161,18 @@ const ProfileScreen = () => {
     },
     {
       icon: 'notifications-outline',
-      title: 'Notifications',
-      subtitle: 'Manage notification preferences',
+      title: 'Notification Preferences',
+      subtitle: 'Manage your notification settings',
       onPress: () => {
-        Alert.alert('Coming Soon', 'Notification settings will be available soon');
+        navigation.navigate('NotificationPreferences');
+      },
+    },
+    {
+      icon: 'analytics-outline',
+      title: 'My Reports',
+      subtitle: 'View your activity reports',
+      onPress: () => {
+        navigation.navigate('UserReports');
       },
     },
     {
@@ -264,6 +326,33 @@ const ProfileScreen = () => {
                 </Text>
               </TouchableOpacity>
             )}
+          </View>
+        </View>
+      </View>
+
+      {/* Stats Cards */}
+      <View style={styles.statsSection}>
+        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Quick Overview</Text>
+        <View style={styles.statsGrid}>
+          <View style={[styles.statCard, { backgroundColor: theme.colors.surface }]}>
+            <Ionicons name="calendar" size={24} color="#2563eb" />
+            <Text style={[styles.statNumber, { color: theme.colors.text }]}>{appointmentStats.upcoming}</Text>
+            <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>Upcoming</Text>
+          </View>
+          <View style={[styles.statCard, { backgroundColor: theme.colors.surface }]}>
+            <Ionicons name="checkmark-circle" size={24} color="#059669" />
+            <Text style={[styles.statNumber, { color: theme.colors.text }]}>{appointmentStats.completed}</Text>
+            <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>Completed</Text>
+          </View>
+          <View style={[styles.statCard, { backgroundColor: theme.colors.surface }]}>
+            <Ionicons name="bag" size={24} color="#d97706" />
+            <Text style={[styles.statNumber, { color: theme.colors.text }]}>{orderStats.total}</Text>
+            <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>Orders</Text>
+          </View>
+          <View style={[styles.statCard, { backgroundColor: theme.colors.surface }]}>
+            <Ionicons name="cash" size={24} color="#7c3aed" />
+            <Text style={[styles.statNumber, { color: theme.colors.text }]}>${orderStats.totalSpent.toFixed(0)}</Text>
+            <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>Spent</Text>
           </View>
         </View>
       </View>
@@ -448,6 +537,48 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2,
+  },
+  statsSection: {
+    paddingHorizontal: 20,
+    marginTop: 24,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1f2937',
+    marginBottom: 16,
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  statCard: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    width: '48%',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  statNumber: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1f2937',
+    marginTop: 8,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginTop: 4,
   },
 });
 

@@ -12,7 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../services/supabase';
-import { Order } from '../types';
+import { Order, OrderItem } from '../types';
 import { useTheme } from '../contexts/ThemeContext';
 
 const OrdersScreen = () => {
@@ -183,7 +183,7 @@ const OrdersScreen = () => {
 
             <View style={[styles.orderItems, { borderTopColor: theme.colors.border }]}>
               <Text style={[styles.itemsHeader, { color: theme.colors.text }]}>Items Ordered:</Text>
-              {order.order_items?.map((item, index) => (
+              {order.order_items?.map((item: OrderItem, index: number) => (
                 <View key={index} style={styles.orderItem}>
                   <View style={styles.itemInfo}>
                     <Text style={[styles.itemName, { color: theme.colors.text }]}>{item.products?.name}</Text>

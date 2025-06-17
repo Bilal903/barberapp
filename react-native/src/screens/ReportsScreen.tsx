@@ -115,7 +115,11 @@ const ReportsScreen = () => {
         }, {} as Record<string, { count: number; revenue: number }>) || {};
 
       const topServices = Object.entries(serviceStats)
-        .map(([name, stats]) => ({ name, ...stats }))
+        .map(([name, stats]) => ({ 
+          name, 
+          count: (stats as { count: number; revenue: number }).count, 
+          revenue: (stats as { count: number; revenue: number }).revenue 
+        }))
         .sort((a, b) => b.revenue - a.revenue)
         .slice(0, 5);
 

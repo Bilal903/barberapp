@@ -39,7 +39,7 @@ const TabNavigator = React.memo(() => {
 
           if (route.name === 'Home') {
             iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'Appointment') {
+          } else if (route.name === 'Book') {
             iconName = focused ? 'calendar' : 'calendar-outline';
           } else if (route.name === 'Deals') {
             iconName = focused ? 'bag' : 'bag-outline';
@@ -68,7 +68,7 @@ const TabNavigator = React.memo(() => {
         }}
       />
       <Tab.Screen
-        name="Appointment"
+        name="Book"
         component={BookScreen}
         options={{
           tabBarIcon: ({ color, size }) => <Ionicons name="calendar" size={size} color={color} />,

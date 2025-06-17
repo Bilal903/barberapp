@@ -332,6 +332,15 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingHorizontal: 20,
     paddingBottom: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backButton: {
+    marginRight: 16,
+    padding: 8,
+  },
+  headerContent: {
+    flex: 1,
   },
   title: {
     fontSize: 28,

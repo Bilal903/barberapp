@@ -4,6 +4,7 @@ export interface Service {
   description: string;
   duration: number;
   price: number;
+  category?: string;
   is_active: boolean;
   image_url?: string;
 }
@@ -58,4 +59,33 @@ export interface ProductSliderItem {
   id: string;
   name: string;
   image_url?: string;
-} 
+}
+
+export interface Product {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  category: string;
+  stock_quantity: number;
+  image_url?: string;
+  is_active: boolean;
+}
+
+export interface Order {
+  id: string;
+  customer_id: string;
+  total_amount: number;
+  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  created_at: string;
+  order_items?: OrderItem[];
+}
+
+export interface OrderItem {
+  id: string;
+  order_id: string;
+  product_id: string;
+  quantity: number;
+  price: number;
+  products?: Product;
+}

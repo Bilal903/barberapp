@@ -1,0 +1,50 @@
+{
+  "expo": {
+    "name": "Alpha Men Saloon",
+    "slug": "alpha-men-salon",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/logo3.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": false,
+    "splash": {
+      "image": "./assets/logo3.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.alphamensaloon.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/logo3.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "com.alphamensaloon.app",
+      "permissions": [
+        "CAMERA",
+        "INTERNET",
+        "ACCESS_FINE_LOCATION",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "a1cb3f19-caaa-4ca5-9f56-5ce1a7e5144c"
+      }
+    },
+    "owner": "murtazatouqeer",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/a1cb3f19-caaa-4ca5-9f56-5ce1a7e5144c"
+    }
+  }
+}

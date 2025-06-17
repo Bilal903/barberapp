@@ -14,6 +14,8 @@ import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../services/supabase';
 import { Appointment } from '../types';
 
+type AppointmentError = { message: string };
+
 const AppointmentsScreen = () => {
   const { user } = useAuth();
   const navigation = useNavigation();
@@ -37,7 +39,7 @@ const AppointmentsScreen = () => {
           barbers (name),
           services (name, duration, price)
         `)
-        .eq('customer_id', user.id)
+        .eq('user_id', user.id)
         .order('appointment_date', { ascending: false })
         .order('appointment_time', { ascending: false });
 
@@ -49,8 +51,9 @@ const AppointmentsScreen = () => {
 
       const { data } = await query;
       setAppointments(data as Appointment[] || []);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error fetching appointments:', error);
+      Alert.alert('Error', (error as AppointmentError).message);
     } finally {
       setLoading(false);
       setRefreshing(false);

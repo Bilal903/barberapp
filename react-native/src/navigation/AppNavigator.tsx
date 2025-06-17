@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -20,12 +20,16 @@ import ServicesScreen from '../screens/ServicesScreen';
 import NotificationPreferencesScreen from '../screens/NotificationPreferencesScreen';
 import ReportsScreen from '../screens/ReportsScreen';
 import CustomerManagementScreen from '../screens/CustomerManagementScreen';
+import DealsHistoryScreen from '../screens/DealsHistoryScreen';
+import DealsManagementScreen from '../screens/DealsManagementScreen';
+import { useTheme } from '../contexts/ThemeContext';
 
 const Stack = createStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
 
-const TabNavigator = () => {
+const TabNavigator = React.memo(() => {
   const { isAdmin } = useAuth();
+  const { theme } = useTheme();
 
   return (
     <Tab.Navigator
@@ -35,9 +39,9 @@ const TabNavigator = () => {
 
           if (route.name === 'Home') {
             iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'Book') {
+          } else if (route.name === 'Appointment') {
             iconName = focused ? 'calendar' : 'calendar-outline';
-          } else if (route.name === 'Shop') {
+          } else if (route.name === 'Deals') {
             iconName = focused ? 'bag' : 'bag-outline';
           } else if (route.name === 'Membership') {
             iconName = focused ? 'diamond' : 'diamond-outline';
@@ -51,14 +55,32 @@ const TabNavigator = () => {
 
           return <Ionicons name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: '#2563eb',
+        tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: 'gray',
         headerShown: false,
       })}
     >
-      <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Book" component={BookScreen} />
-      <Tab.Screen name="Shop" component={ShopScreen} />
+      <Tab.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => <Ionicons name="home" size={size} color={color} />,
+        }}
+      />
+      <Tab.Screen
+        name="Appointment"
+        component={BookScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => <Ionicons name="calendar" size={size} color={color} />,
+        }}
+      />
+      <Tab.Screen
+        name="Deals"
+        component={ShopScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => <Ionicons name="bag" size={size} color={color} />,
+        }}
+      />
       <Tab.Screen name="Membership" component={MembershipScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
       {isAdmin && (
@@ -72,34 +94,40 @@ const TabNavigator = () => {
       )}
     </Tab.Navigator>
   );
-};
+});
 
 const AppNavigator = () => {
   const { user, loading } = useAuth();
 
-  if (loading) {
-    return <LoadingScreen />;
-  }
+  const navigationContent = useMemo(() => {
+    if (loading) {
+      return <LoadingScreen />;
+    }
 
-  return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {user ? (
-          <>
-            <Stack.Screen name="Main" component={TabNavigator} />
-            <Stack.Screen name="Appointments" component={AppointmentsScreen} />
-            <Stack.Screen name="Orders" component={OrdersScreen} />
-            <Stack.Screen name="Services" component={ServicesScreen} />
-            <Stack.Screen name="NotificationPreferences" component={NotificationPreferencesScreen} />
-            <Stack.Screen name="Reports" component={ReportsScreen} />
-            <Stack.Screen name="CustomerManagement" component={CustomerManagementScreen} />
-          </>
-        ) : (
-          <Stack.Screen name="Auth" component={AuthScreen} />
-        )}
-      </Stack.Navigator>
-    </NavigationContainer>
-  );
+    return (
+      <NavigationContainer>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          {user ? (
+            <>
+              <Stack.Screen name="Main" component={TabNavigator} />
+              <Stack.Screen name="Appointments" component={AppointmentsScreen} />
+              <Stack.Screen name="Orders" component={OrdersScreen} />
+              <Stack.Screen name="Services" component={ServicesScreen} />
+              <Stack.Screen name="NotificationPreferences" component={NotificationPreferencesScreen} />
+              <Stack.Screen name="Reports" component={ReportsScreen} />
+              <Stack.Screen name="CustomerManagement" component={CustomerManagementScreen} />
+              <Stack.Screen name="DealsHistory" component={DealsHistoryScreen} />
+              <Stack.Screen name="DealsManagement" component={DealsManagementScreen} />
+            </>
+          ) : (
+            <Stack.Screen name="Auth" component={AuthScreen} />
+          )}
+        </Stack.Navigator>
+      </NavigationContainer>
+    );
+  }, [user, loading]);
+
+  return navigationContent;
 };
 
 export default AppNavigator;

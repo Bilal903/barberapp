@@ -16,14 +16,15 @@ export interface Theme {
     error: string;
     white: string;
     black: string;
+    shadow: string;
   };
   isDark: boolean;
 }
 
 const lightTheme: Theme = {
   colors: {
-    primary: '#2563eb',
-    secondary: '#64748b',
+    primary: '#cf814d',
+    secondary: '#cf814d',
     background: '#f9fafb',
     surface: '#ffffff',
     card: '#ffffff',
@@ -35,14 +36,15 @@ const lightTheme: Theme = {
     error: '#ef4444',
     white: '#ffffff',
     black: '#000000',
+    shadow: '#000000',
   },
   isDark: false,
 };
 
 const darkTheme: Theme = {
   colors: {
-    primary: '#3b82f6',
-    secondary: '#94a3b8',
+    primary: '#cf814d',
+    secondary: '#cf814d',
     background: '#0f172a',
     surface: '#1e293b',
     card: '#334155',
@@ -54,6 +56,7 @@ const darkTheme: Theme = {
     error: '#f87171',
     white: '#ffffff',
     black: '#000000',
+    shadow: '#000000',
   },
   isDark: true,
 };
@@ -67,7 +70,7 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isDark, setIsDark] = useState(false);
+  const [isDark, setIsDark] = useState(true);
 
   useEffect(() => {
     loadTheme();
@@ -78,6 +81,10 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const savedTheme = await AsyncStorage.getItem('theme');
       if (savedTheme !== null) {
         setIsDark(savedTheme === 'dark');
+      } else {
+        // If no theme is saved, default to dark and save this preference for next launches
+        setIsDark(true);
+        await AsyncStorage.setItem('theme', 'dark');
       }
     } catch (error) {
       console.error('Error loading theme:', error);

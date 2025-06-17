@@ -15,8 +15,10 @@ import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../services/supabase';
 
+type ProfileError = { message: string };
+
 const ProfileScreen = () => {
-  const { user, signOut } = useAuth();
+  const { user, signOut, isAdmin } = useAuth();
   const { theme, isDark, toggleTheme } = useTheme();
   const navigation = useNavigation();
   const [profile, setProfile] = useState({
@@ -58,8 +60,9 @@ const ProfileScreen = () => {
           email: user.email || '',
         });
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error fetching profile:', error);
+      Alert.alert('Error', (error as ProfileError).message);
     }
   };
 
@@ -167,14 +170,14 @@ const ProfileScreen = () => {
         navigation.navigate('NotificationPreferences');
       },
     },
-    {
+    ...(isAdmin ? [{
       icon: 'analytics-outline',
       title: 'My Reports',
       subtitle: 'View your activity reports',
       onPress: () => {
-        navigation.navigate('UserReports');
+        navigation.navigate('Reports');
       },
-    },
+    }] : []),
     {
       icon: isDark ? 'sunny-outline' : 'moon-outline',
       title: 'Dark Mode',
@@ -213,8 +216,8 @@ const ProfileScreen = () => {
         <Switch
           value={isDark}
           onValueChange={toggleTheme}
-          trackColor={{ false: '#e5e7eb', true: theme.colors.primary }}
-          thumbColor={isDark ? '#ffffff' : '#f4f3f4'}
+          trackColor={{ false: theme.colors.border, true: theme.colors.primary }}
+          thumbColor={isDark ? theme.colors.white : theme.colors.surface}
         />
       ) : (
         <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
@@ -224,17 +227,17 @@ const ProfileScreen = () => {
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <View style={[styles.header, { backgroundColor: theme.colors.surface }]}>
-        <Text style={[styles.title, { color: theme.colors.text }]}>Profile</Text>
+      <View style={[styles.header, { backgroundColor: theme.colors.primary, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
+        <Text style={[styles.title, { color: theme.colors.white }]}>Profile</Text>
         <TouchableOpacity onPress={signOut} style={styles.signOutButton}>
-          <Ionicons name="log-out-outline" size={24} color={theme.colors.error} />
+          <Ionicons name="log-out-outline" size={24} color={theme.colors.white} />
         </TouchableOpacity>
       </View>
 
       {/* Profile Info */}
       <View style={styles.profileSection}>
         <View style={[styles.profileCard, { backgroundColor: theme.colors.surface }]}>
-          <View style={styles.profileHeader}>
+          <View style={[styles.profileHeader, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }]}>
             <View style={[styles.avatar, { backgroundColor: theme.colors.background }]}>
               <Ionicons name="person" size={32} color={theme.colors.textSecondary} />
             </View>
@@ -264,7 +267,7 @@ const ProfileScreen = () => {
                   !editing && styles.inputDisabled
                 ]}
                 value={profile.full_name}
-                onChangeText={(text) => setProfile({ ...profile, full_name: text })}
+                onChangeText={(text: string) => setProfile({ ...profile, full_name: text })}
                 editable={editing}
                 placeholder="Enter your full name"
                 placeholderTextColor={theme.colors.textSecondary}
@@ -303,7 +306,7 @@ const ProfileScreen = () => {
                   !editing && styles.inputDisabled
                 ]}
                 value={profile.phone}
-                onChangeText={(text) => setProfile({ ...profile, phone: text })}
+                onChangeText={(text: string) => setProfile({ ...profile, phone: text })}
                 editable={editing}
                 placeholder="Enter your phone number"
                 placeholderTextColor={theme.colors.textSecondary}
@@ -335,22 +338,22 @@ const ProfileScreen = () => {
         <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Quick Overview</Text>
         <View style={styles.statsGrid}>
           <View style={[styles.statCard, { backgroundColor: theme.colors.surface }]}>
-            <Ionicons name="calendar" size={24} color="#2563eb" />
+            <Ionicons name="calendar" size={24} color={theme.colors.primary} />
             <Text style={[styles.statNumber, { color: theme.colors.text }]}>{appointmentStats.upcoming}</Text>
             <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>Upcoming</Text>
           </View>
           <View style={[styles.statCard, { backgroundColor: theme.colors.surface }]}>
-            <Ionicons name="checkmark-circle" size={24} color="#059669" />
+            <Ionicons name="checkmark-circle" size={24} color={theme.colors.success} />
             <Text style={[styles.statNumber, { color: theme.colors.text }]}>{appointmentStats.completed}</Text>
             <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>Completed</Text>
           </View>
           <View style={[styles.statCard, { backgroundColor: theme.colors.surface }]}>
-            <Ionicons name="bag" size={24} color="#d97706" />
+            <Ionicons name="bag" size={24} color={theme.colors.warning} />
             <Text style={[styles.statNumber, { color: theme.colors.text }]}>{orderStats.total}</Text>
             <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>Orders</Text>
           </View>
           <View style={[styles.statCard, { backgroundColor: theme.colors.surface }]}>
-            <Ionicons name="cash" size={24} color="#7c3aed" />
+            <Ionicons name="cash" size={24} color={theme.colors.secondary} />
             <Text style={[styles.statNumber, { color: theme.colors.text }]}>${orderStats.totalSpent.toFixed(0)}</Text>
             <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>Spent</Text>
           </View>
@@ -380,13 +383,11 @@ const ProfileScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
   },
   header: {
     paddingTop: 60,
     paddingHorizontal: 20,
     paddingBottom: 20,
-    backgroundColor: 'white',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -394,96 +395,52 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#1f2937',
   },
-  signOutButton: {
-    padding: 8,
+  subtitle: {
+    fontSize: 16,
+    marginTop: 4,
   },
-  profileSection: {
-    paddingHorizontal: 20,
-    marginTop: 20,
-  },
-  profileCard: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+  content: {
+    flex: 1,
   },
   profileHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 20,
+  },
+  profileInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
   },
   avatar: {
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#f3f4f6',
     justifyContent: 'center',
     alignItems: 'center',
+    marginRight: 16,
+  },
+  profileText: {
+    flex: 1,
+  },
+  name: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  email: {
+    fontSize: 14,
   },
   editButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#eff6ff',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  profileForm: {
-    gap: 16,
-  },
-  inputGroup: {
-    gap: 8,
-  },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#374151',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: '#1f2937',
-    backgroundColor: 'white',
-  },
-  inputDisabled: {
-    backgroundColor: '#f9fafb',
-    color: '#6b7280',
-  },
-  saveButton: {
-    backgroundColor: '#2563eb',
-    borderRadius: 8,
-    paddingVertical: 12,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  saveButtonDisabled: {
-    backgroundColor: '#9ca3af',
-  },
-  saveButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
+    padding: 8,
   },
   menuSection: {
     paddingHorizontal: 20,
     marginTop: 24,
   },
   menuItem: {
-    backgroundColor: 'white',
     borderRadius: 12,
     padding: 16,
     flexDirection: 'row',
@@ -511,12 +468,10 @@ const styles = StyleSheet.create({
   menuItemTitle: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#1f2937',
     marginBottom: 2,
   },
   menuItemSubtitle: {
     fontSize: 14,
-    color: '#6b7280',
   },
   signOutSection: {
     paddingHorizontal: 20,
@@ -524,7 +479,6 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   signOutMenuItem: {
-    backgroundColor: 'white',
     borderRadius: 12,
     padding: 16,
     flexDirection: 'row',
@@ -545,7 +499,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1f2937',
     marginBottom: 16,
   },
   statsGrid: {
@@ -555,7 +508,6 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   statCard: {
-    backgroundColor: 'white',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -572,13 +524,63 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1f2937',
     marginTop: 8,
   },
   statLabel: {
     fontSize: 12,
-    color: '#6b7280',
     marginTop: 4,
+  },
+  profileSection: {
+    paddingHorizontal: 20,
+    marginTop: 20,
+  },
+  profileCard: {
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  profileForm: {
+    gap: 16,
+  },
+  inputGroup: {
+    gap: 8,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  input: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    fontSize: 16,
+  },
+  inputDisabled: {
+    opacity: 0.7,
+  },
+  saveButton: {
+    borderRadius: 8,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  saveButtonDisabled: {
+    opacity: 0.5,
+  },
+  saveButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  signOutButton: {
+    padding: 8,
   },
 });
 

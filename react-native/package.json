@@ -1,5 +1,5 @@
 {
-  "name": "newbarber-rn",
+  "name": "Saloon",
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
@@ -30,10 +30,13 @@
     "react-native-screens": "^4.11.1",
     "react-native-url-polyfill": "^2.0.0",
     "react-native-web": "^0.20.0",
-    "zod": "^3.25.51"
+    "zod": "^3.25.51",
+    "expo-updates": "~0.28.14",
+    "expo-dev-client": "~5.2.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
+    "@react-native-community/cli": "latest",
     "@types/react": "~19.0.10",
     "typescript": "~5.8.3"
   },

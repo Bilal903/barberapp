@@ -12,6 +12,8 @@ import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../services/supabase';
 
+type AdminError = { message: string };
+
 const AdminScreen = () => {
   const { user } = useAuth();
   const navigation = useNavigation();
@@ -46,8 +48,9 @@ const AdminScreen = () => {
         totalOrders: orders.count || 0,
         totalServices: services.count || 0,
       });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error fetching stats:', error);
+      Alert.alert('Error', (error as AdminError).message);
     } finally {
       setLoading(false);
     }
@@ -124,10 +127,10 @@ const AdminScreen = () => {
             onPress={() => navigation.navigate('Appointments' as never)}
           />
           <QuickAction
-            title="Manage Products"
+            title="Manage Deals"
             icon="bag-outline"
             color="#d97706"
-            onPress={() => navigation.navigate('Shop' as never)}
+            onPress={() => navigation.navigate('DealsManagement' as never)}
           />
           <QuickAction
             title="Customer Management"
@@ -188,22 +191,18 @@ const AdminScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
   },
   header: {
     paddingTop: 60,
     paddingHorizontal: 20,
     paddingBottom: 20,
-    backgroundColor: 'white',
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#1f2937',
   },
   subtitle: {
     fontSize: 16,
-    color: '#6b7280',
     marginTop: 4,
   },
   statsContainer: {
@@ -212,7 +211,6 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   statCard: {
-    backgroundColor: 'white',
     borderRadius: 12,
     padding: 16,
     borderLeftWidth: 4,
@@ -232,13 +230,11 @@ const styles = StyleSheet.create({
   },
   statTitle: {
     fontSize: 14,
-    color: '#6b7280',
     marginBottom: 4,
   },
   statValue: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1f2937',
   },
   section: {
     paddingHorizontal: 20,
@@ -247,7 +243,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1f2937',
     marginBottom: 16,
   },
   quickActionsGrid: {
@@ -256,7 +251,6 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   quickAction: {
-    backgroundColor: 'white',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -272,12 +266,10 @@ const styles = StyleSheet.create({
   },
   quickActionText: {
     fontSize: 12,
-    color: '#374151',
     marginTop: 8,
     textAlign: 'center',
   },
   activityCard: {
-    backgroundColor: 'white',
     borderRadius: 12,
     padding: 16,
     shadowColor: '#000',
@@ -291,7 +283,6 @@ const styles = StyleSheet.create({
   },
   activityText: {
     fontSize: 16,
-    color: '#1f2937',
     marginBottom: 8,
   },
   activitySubtext: {

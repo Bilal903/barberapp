@@ -40,9 +40,30 @@ const CustomerManagementScreen = () => {
     fetchCustomers();
   }, []);
 
+  const filterCustomers = () => {
+    let filtered = customers;
+
+    // Apply status filter
+    if (selectedFilter !== 'all') {
+      filtered = filtered.filter(customer => customer.status === selectedFilter);
+    }
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(customer =>
+        customer.full_name?.toLowerCase().includes(query) ||
+        customer.email?.toLowerCase().includes(query) ||
+        customer.phone?.includes(query)
+      );
+    }
+
+    setFilteredCustomers(filtered);
+  };
+
   useEffect(() => {
     filterCustomers();
-  }, [customers, searchQuery, selectedFilter]);
+  }, [customers, searchQuery, selectedFilter, filterCustomers]);
 
   const fetchCustomers = async () => {
     try {
@@ -109,27 +130,6 @@ const CustomerManagementScreen = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  };
-
-  const filterCustomers = () => {
-    let filtered = customers;
-
-    // Apply status filter
-    if (selectedFilter !== 'all') {
-      filtered = filtered.filter(customer => customer.status === selectedFilter);
-    }
-
-    // Apply search filter
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(customer =>
-        customer.full_name?.toLowerCase().includes(query) ||
-        customer.email?.toLowerCase().includes(query) ||
-        customer.phone?.includes(query)
-      );
-    }
-
-    setFilteredCustomers(filtered);
   };
 
   const onRefresh = () => {
@@ -327,39 +327,26 @@ const CustomerManagementScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
   },
   header: {
     paddingTop: 60,
     paddingHorizontal: 20,
     paddingBottom: 20,
-    backgroundColor: 'white',
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  backButton: {
-    marginRight: 16,
-    padding: 8,
-  },
-  headerContent: {
-    flex: 1,
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#1f2937',
   },
   subtitle: {
     fontSize: 16,
-    color: '#6b7280',
     marginTop: 4,
   },
+  content: {
+    flex: 1,
+  },
   searchContainer: {
-    backgroundColor: 'white',
     paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    marginTop: 16,
   },
   searchBar: {
     flexDirection: 'row',
@@ -370,10 +357,10 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   searchInput: {
-    flex: 1,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     fontSize: 16,
-    color: '#1f2937',
-    marginLeft: 8,
   },
   filterContainer: {
     flexDirection: 'row',
@@ -416,20 +403,17 @@ const styles = StyleSheet.create({
     color: '#6b7280',
   },
   emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 40,
     alignItems: 'center',
-    paddingTop: 100,
   },
   emptyTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#374151',
-    marginTop: 16,
+    marginBottom: 8,
   },
   emptySubtitle: {
     fontSize: 14,
-    color: '#6b7280',
     textAlign: 'center',
     marginTop: 8,
     paddingHorizontal: 40,
@@ -457,7 +441,6 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#2563eb',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -465,7 +448,6 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: 'white',
   },
   customerInfo: {
     flex: 1,
@@ -473,17 +455,14 @@ const styles = StyleSheet.create({
   customerName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1f2937',
     marginBottom: 2,
   },
   customerEmail: {
     fontSize: 14,
-    color: '#6b7280',
     marginBottom: 2,
   },
   customerPhone: {
     fontSize: 14,
-    color: '#6b7280',
   },
   customerStatus: {
     alignItems: 'flex-end',
@@ -496,7 +475,6 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 12,
     fontWeight: '500',
-    color: 'white',
     textTransform: 'capitalize',
   },
   customerStats: {
@@ -511,14 +489,12 @@ const styles = StyleSheet.create({
   },
   statText: {
     fontSize: 12,
-    color: '#6b7280',
     marginLeft: 4,
   },
   customerActions: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
     paddingTop: 12,
   },
   actionButton: {
@@ -527,12 +503,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
-    backgroundColor: '#f3f4f6',
   },
   actionButtonText: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#374151',
     marginLeft: 4,
   },
 });

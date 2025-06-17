@@ -17,7 +17,7 @@ import { supabase } from '../services/supabase';
 import { Product } from '../types';
 import { useFocusEffect } from '@react-navigation/native';
 
-const ShopScreen = () => {
+const ShopScreen = ({ navigation }: { navigation: any }) => {
   const { user } = useAuth();
   const { theme } = useTheme();
   const [products, setProducts] = useState<Product[]>([]);
@@ -27,6 +27,7 @@ const ShopScreen = () => {
   const [cart, setCart] = useState<{ [key: string]: number }>({});
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [showCart, setShowCart] = useState(false);
 
   const categories = ['All', 'Hair Care', 'Styling', 'Beard Care', 'Tools'];
 
@@ -135,68 +136,81 @@ const ShopScreen = () => {
     return Object.values(cart).reduce((total, quantity) => total + quantity, 0);
   };
 
-  const checkout = async () => {
+  const handleOrder = async () => {
+    if (!user) {
+      Alert.alert('Error', 'Please sign in to place an order');
+      return;
+    }
+
     if (Object.keys(cart).length === 0) {
       Alert.alert('Error', 'Your cart is empty');
       return;
     }
 
     try {
-      console.log('ShopScreen: Starting checkout process...');
-      console.log('Cart contents:', cart);
-      console.log('User ID:', user?.id);
-      console.log('Total amount:', getCartTotal());
+      setLoading(true);
 
-      const orderItems = Object.entries(cart).map(([productId, quantity]) => {
+      // Calculate total amount from cart object
+      const totalAmount = Object.entries(cart).reduce((sum, [productId, quantity]) => {
         const product = products.find(p => p.id === productId);
-        return {
-          product_id: productId,
-          quantity,
-          price_per_item: product?.price || 0, // Use correct column name
-        };
-      });
+        return sum + (product ? product.price * quantity : 0);
+      }, 0);
 
-      console.log('Order items:', orderItems);
-
+      // Create order
       const { data: order, error: orderError } = await supabase
         .from('orders')
-        .insert({
-          user_id: user?.id,
-          total_amount: getCartTotal(),
-          status: 'pending',
-        })
+        .insert([
+          {
+            user_id: user.id,
+            total_amount: totalAmount,
+            status: 'pending',
+          },
+        ])
         .select()
         .single();
 
-      console.log('Order creation response:', { order, orderError });
+      if (orderError) throw orderError;
 
-      if (orderError) {
-        console.error('Order creation error:', orderError);
-        throw orderError;
-      }
+      // Create order items from cart object
+      const orderItems = Object.entries(cart).map(([productId, quantity]) => {
+        const product = products.find(p => p.id === productId);
+        return {
+          order_id: order.id,
+          product_id: productId,
+          quantity: quantity,
+          price_per_item: product ? product.price : 0,
+        };
+      });
 
       const { error: itemsError } = await supabase
         .from('order_items')
-        .insert(
-          orderItems.map(item => ({
-            ...item,
-            order_id: order.id,
-          }))
-        );
+        .insert(orderItems);
 
-      console.log('Order items creation error:', itemsError);
+      if (itemsError) throw itemsError;
 
-      if (itemsError) {
-        console.error('Order items creation error:', itemsError);
-        throw itemsError;
-      }
-
-      console.log('Checkout completed successfully');
-      Alert.alert('Success', 'Order placed successfully!');
+      // Clear cart
       setCart({});
+      setShowCart(false);
+
+      Alert.alert(
+        'Success',
+        'Your order has been placed successfully!',
+        [
+          {
+            text: 'View Orders',
+            onPress: () => navigation.navigate('DealsHistory'),
+          },
+          {
+            text: 'Continue Shopping',
+            style: 'cancel',
+          },
+        ]
+      );
     } catch (error) {
-      console.error('Checkout error:', error);
-      Alert.alert('Error', `Failed to place order: ${error.message || 'Unknown error'}`);
+      console.error('Error placing order:', error);
+      Alert.alert('Error', (error as Error).message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -251,10 +265,17 @@ const ShopScreen = () => {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      {/* Header */}
-      <View style={[styles.header, { backgroundColor: theme.colors.surface }]}>
-        <Text style={[styles.title, { color: theme.colors.text }]}>Shop</Text>
-        <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>Premium hair care products</Text>
+      <View style={[styles.header, { backgroundColor: theme.colors.primary }]}>
+        <Text style={[styles.title, { color: theme.colors.white }]}>Deals</Text>
+        <Text style={[styles.subtitle, { color: theme.colors.white }]}>
+          Exclusive offers and products
+        </Text>
+        <TouchableOpacity
+          style={styles.historyButton}
+          onPress={() => navigation.navigate('DealsHistory')}
+        >
+          <Ionicons name="time-outline" size={24} color={theme.colors.white} />
+        </TouchableOpacity>
       </View>
 
       {/* Search */}
@@ -316,7 +337,7 @@ const ShopScreen = () => {
             <Text style={styles.cartItemCount}>{getCartItemCount()} items</Text>
             <Text style={styles.cartTotal}>${getCartTotal().toFixed(2)}</Text>
           </View>
-          <TouchableOpacity style={styles.checkoutButton} onPress={checkout}>
+          <TouchableOpacity style={styles.checkoutButton} onPress={handleOrder}>
             <Text style={styles.checkoutButtonText}>Checkout</Text>
           </TouchableOpacity>
         </View>
@@ -328,7 +349,6 @@ const ShopScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
   },
   loadingContainer: {
     flex: 1,
@@ -339,22 +359,18 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingHorizontal: 20,
     paddingBottom: 20,
-    backgroundColor: 'white',
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#1f2937',
   },
   subtitle: {
     fontSize: 16,
-    color: '#6b7280',
     marginTop: 4,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
     marginHorizontal: 16,
     marginTop: 12,
     borderRadius: 25,
@@ -375,7 +391,6 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 16,
-    color: '#1f2937',
     paddingVertical: 0,
   },
   categoriesScroll: {
@@ -384,28 +399,18 @@ const styles = StyleSheet.create({
     maxHeight: 50,
   },
   categoryButton: {
-    backgroundColor: 'white',
     borderRadius: 25,
     paddingHorizontal: 20,
     paddingVertical: 10,
     marginRight: 8,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
     height: 40,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  selectedCategoryButton: {
-    backgroundColor: '#2563eb',
-    borderColor: '#2563eb',
-  },
   categoryText: {
     fontSize: 14,
-    color: '#6b7280',
     fontWeight: '500',
-  },
-  selectedCategoryText: {
-    color: 'white',
   },
   productsContainer: {
     flex: 1,
@@ -419,7 +424,6 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   productCard: {
-    backgroundColor: 'white',
     borderRadius: 12,
     width: '48%',
     marginBottom: 12,
@@ -436,7 +440,6 @@ const styles = StyleSheet.create({
   productImage: {
     width: '100%',
     height: 140,
-    backgroundColor: '#f3f4f6',
     resizeMode: 'cover',
   },
   productInfo: {
@@ -446,12 +449,10 @@ const styles = StyleSheet.create({
   productName: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1f2937',
     marginBottom: 6,
   },
   productDescription: {
     fontSize: 13,
-    color: '#6b7280',
     marginBottom: 12,
     lineHeight: 18,
   },
@@ -463,12 +464,10 @@ const styles = StyleSheet.create({
   productPrice: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#2563eb',
   },
   quantityControls: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f8fafc',
     borderRadius: 20,
     paddingHorizontal: 4,
   },
@@ -476,7 +475,6 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#2563eb',
     justifyContent: 'center',
     alignItems: 'center',
     margin: 2,
@@ -484,41 +482,43 @@ const styles = StyleSheet.create({
   quantityText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1f2937',
     marginHorizontal: 8,
   },
   cartSummary: {
-    backgroundColor: 'white',
     paddingHorizontal: 20,
     paddingVertical: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
   },
   cartInfo: {
     flex: 1,
   },
   cartItemCount: {
     fontSize: 14,
-    color: '#6b7280',
+    fontWeight: '500',
   },
   cartTotal: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1f2937',
+    fontWeight: '700',
   },
   checkoutButton: {
-    backgroundColor: '#2563eb',
-    borderRadius: 12,
+    backgroundColor: '#cf814d',
     paddingHorizontal: 24,
     paddingVertical: 12,
+    borderRadius: 8,
   },
   checkoutButtonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
+  },
+  historyButton: {
+    position: 'absolute',
+    right: 20,
+    top: 60,
+    padding: 8,
   },
 });
 

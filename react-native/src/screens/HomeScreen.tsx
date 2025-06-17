@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,21 +6,32 @@ import {
   TouchableOpacity,
   StyleSheet,
   RefreshControl,
+  Alert,
+  FlatList,
+  Image,
+  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../services/supabase';
-import { Appointment } from '../types';
+import { Appointment, Deal, DealSliderItem, ProductSliderItem } from '../types';
+
+type HomeError = { message: string };
+
+const { width } = Dimensions.get('window');
 
 const HomeScreen = () => {
   const navigation = useNavigation();
   const { user, signOut } = useAuth();
   const { theme } = useTheme();
   const [nextAppointment, setNextAppointment] = useState<Appointment | null>(null);
+  const [products, setProducts] = useState<ProductSliderItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const flatListRef = useRef<FlatList>(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   const fetchUserData = async () => {
     if (!user) return;
@@ -34,7 +45,7 @@ const HomeScreen = () => {
           barbers (name),
           services (name, duration, price)
         `)
-        .eq('customer_id', user.id)
+        .eq('user_id', user.id)
         .eq('status', 'scheduled')
         .gte('appointment_date', new Date().toISOString().split('T')[0])
         .order('appointment_date', { ascending: true })
@@ -44,8 +55,21 @@ const HomeScreen = () => {
       if (appointments && appointments.length > 0) {
         setNextAppointment(appointments[0] as Appointment);
       }
-    } catch (error) {
+
+      // Fetch active products for the slider
+      const { data: fetchedProducts, error: productsError } = await supabase
+        .from('products')
+        .select('id, name, image_url')
+        .eq('is_active', true);
+
+      if (productsError) {
+        console.error('Error fetching products:', productsError);
+      } else {
+        setProducts(fetchedProducts || []);
+      }
+    } catch (error: unknown) {
       console.error('Error fetching user data:', error);
+      Alert.alert('Error', (error as HomeError).message);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -54,7 +78,19 @@ const HomeScreen = () => {
 
   useEffect(() => {
     fetchUserData();
-  }, [user]);
+
+    const interval = setInterval(() => {
+      if (products.length > 0) {
+        setCurrentIndex((prevIndex) => {
+          const nextIndex = (prevIndex + 1) % products.length;
+          flatListRef.current?.scrollToIndex({ animated: true, index: nextIndex });
+          return nextIndex;
+        });
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [user, products]);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -114,17 +150,54 @@ const HomeScreen = () => {
             title="Book Now"
             subtitle="Schedule appointment"
             color="#2563eb"
-            onPress={() => navigation.navigate('Book' as never)}
+            onPress={() => navigation.navigate('Appointment' as never)}
           />
           <QuickActionCard
             icon="bag"
-            title="Shop"
+            title="Deals"
             subtitle="Hair products"
             color="#059669"
-            onPress={() => navigation.navigate('Shop' as never)}
+            onPress={() => navigation.navigate('Deals' as never)}
           />
         </View>
       </View>
+
+      {/* Product Slider */}
+      {products.length > 0 && (
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Featured Deals</Text>
+          <FlatList
+            ref={flatListRef}
+            data={products}
+            renderItem={({ item }) => (
+              <TouchableOpacity 
+                style={styles.dealSlide}
+                onPress={() => navigation.navigate('Main', { screen: 'Deals' })}
+              >
+                <Image 
+                  source={{ uri: item.image_url || 'https://via.placeholder.com/300x150?text=Product' }}
+                  style={styles.dealImage}
+                />
+                <View style={styles.dealOverlay}>
+                  <Text style={styles.dealTitle}>{item.name}</Text>
+                </View>
+              </TouchableOpacity>
+            )}
+            keyExtractor={(item) => item.id}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            pagingEnabled
+            snapToAlignment="center"
+            decelerationRate="fast"
+            contentContainerStyle={styles.dealSliderContent}
+            getItemLayout={(_, index) => ({
+              length: width - (2 * 20),
+              offset: (width - (2 * 20)) * index,
+              index,
+            })}
+          />
+        </View>
+      )}
 
       {/* Next Appointment */}
       {nextAppointment && (
@@ -194,7 +267,7 @@ const HomeScreen = () => {
           </View>
           <TouchableOpacity
             style={[styles.bookServiceButton, { backgroundColor: theme.colors.primary }]}
-            onPress={() => navigation.navigate('Book' as never)}
+            onPress={() => navigation.navigate('Appointment' as never)}
           >
             <Text style={[styles.bookServiceText, { color: theme.colors.white }]}>Book a Service</Text>
           </TouchableOpacity>
@@ -207,10 +280,8 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
   },
   header: {
-    backgroundColor: '#2563eb',
     paddingTop: 60,
     paddingBottom: 24,
     paddingHorizontal: 20,
@@ -225,11 +296,9 @@ const styles = StyleSheet.create({
   welcomeText: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: 'white',
   },
   subtitle: {
     fontSize: 14,
-    color: '#bfdbfe',
     marginTop: 4,
   },
   signOutButton: {
@@ -239,41 +308,62 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginTop: 20,
   },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 16,
+  },
   quickActions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
   quickActionCard: {
-    backgroundColor: 'white',
     borderRadius: 16,
     padding: 20,
     alignItems: 'center',
     flex: 0.48,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
   quickActionIcon: {
-    marginBottom: 12,
+    marginBottom: 8,
   },
   quickActionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1f2937',
     marginBottom: 4,
   },
   quickActionSubtitle: {
     fontSize: 12,
-    color: '#6b7280',
-    textAlign: 'center',
+  },
+  dealSliderContent: {
+    // Removed paddingRight as slides will span full content width
+  },
+  dealSlide: {
+    width: width - (2 * 20), // (Screen width - (paddingHorizontal * 2))
+    height: 180,
+    borderRadius: 12,
+    overflow: 'hidden',
+    // Removed marginRight as slides will span full content width
+    position: 'relative',
+  },
+  dealImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  dealOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    padding: 12,
+  },
+  dealTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white',
   },
   card: {
-    backgroundColor: 'white',
     borderRadius: 16,
     padding: 20,
     shadowColor: '#000',
@@ -288,57 +378,48 @@ const styles = StyleSheet.create({
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   cardTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1f2937',
     marginLeft: 8,
   },
   appointmentDetails: {
-    gap: 12,
+    marginTop: 8,
   },
   appointmentRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    marginBottom: 4,
   },
   appointmentService: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#1f2937',
   },
   appointmentDuration: {
     fontSize: 14,
-    color: '#6b7280',
   },
   appointmentBarber: {
     fontSize: 14,
-    color: '#6b7280',
   },
   appointmentDateTime: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#1f2937',
   },
   viewDetailsButton: {
-    borderWidth: 1,
-    borderColor: '#d1d5db',
+    paddingVertical: 10,
     borderRadius: 8,
-    paddingVertical: 8,
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: 16,
   },
   viewDetailsText: {
-    fontSize: 14,
-    color: '#374151',
-    fontWeight: '500',
+    fontSize: 15,
+    fontWeight: '600',
   },
   membershipCard: {
-    backgroundColor: '#fef3c7',
-    borderColor: '#f59e0b',
     borderWidth: 1,
+    borderColor: '#fca5a5',
+    backgroundColor: '#fef2f2',
   },
   membershipContent: {
     flexDirection: 'row',
@@ -348,48 +429,51 @@ const styles = StyleSheet.create({
   membershipHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 8,
   },
   membershipTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#92400e',
     marginLeft: 8,
   },
   membershipSubtitle: {
-    fontSize: 14,
-    color: '#b45309',
+    fontSize: 13,
+    maxWidth: '80%',
   },
   membershipButton: {
-    backgroundColor: '#d97706',
-    borderRadius: 8,
-    paddingHorizontal: 16,
     paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
   },
   membershipButtonText: {
-    color: 'white',
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   servicesContainer: {
-    gap: 12,
     marginTop: 16,
+    gap: 12,
   },
   serviceCard: {
-    backgroundColor: '#f9fafb',
     borderRadius: 12,
-    padding: 16,
+    padding: 15,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   serviceInfo: {
     flex: 1,
   },
   serviceName: {
     fontSize: 16,
-    fontWeight: '500',
-    color: '#1f2937',
+    fontWeight: '600',
     marginBottom: 4,
   },
   serviceDetails: {
@@ -397,17 +481,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   serviceDetailText: {
-    fontSize: 12,
-    color: '#6b7280',
+    fontSize: 13,
     marginLeft: 4,
   },
   servicePricing: {
     alignItems: 'flex-end',
   },
   servicePrice: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1f2937',
+    fontSize: 18,
+    fontWeight: 'bold',
     marginBottom: 4,
   },
   serviceRating: {
@@ -415,19 +497,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   ratingText: {
-    fontSize: 12,
-    color: '#6b7280',
+    fontSize: 13,
     marginLeft: 4,
   },
   bookServiceButton: {
-    backgroundColor: '#2563eb',
-    borderRadius: 12,
-    paddingVertical: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: 20,
   },
   bookServiceText: {
-    color: 'white',
     fontSize: 16,
     fontWeight: '600',
   },

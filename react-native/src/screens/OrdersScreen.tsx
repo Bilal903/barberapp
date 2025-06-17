@@ -13,18 +13,16 @@ import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../services/supabase';
 import { Order } from '../types';
+import { useTheme } from '../contexts/ThemeContext';
 
 const OrdersScreen = () => {
   const { user } = useAuth();
+  const { theme } = useTheme();
   const navigation = useNavigation();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
-
-  useEffect(() => {
-    fetchOrders();
-  }, [user]);
 
   const fetchOrders = async () => {
     if (!user) return;
@@ -51,6 +49,10 @@ const OrdersScreen = () => {
     }
   };
 
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
+
   const onRefresh = () => {
     setRefreshing(true);
     fetchOrders();
@@ -69,17 +71,17 @@ const OrdersScreen = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending':
-        return '#f59e0b';
+        return theme.colors.warning;
       case 'processing':
-        return '#2563eb';
+        return theme.colors.primary;
       case 'shipped':
-        return '#7c3aed';
+        return theme.colors.secondary;
       case 'delivered':
-        return '#059669';
+        return theme.colors.success;
       case 'cancelled':
-        return '#ef4444';
+        return theme.colors.error;
       default:
-        return '#6b7280';
+        return theme.colors.textSecondary;
     }
   };
 
@@ -104,14 +106,14 @@ const OrdersScreen = () => {
     const isExpanded = expandedOrders.has(order.id);
     
     return (
-      <View style={styles.orderCard}>
+      <View style={[styles.orderCard, { backgroundColor: theme.colors.surface, shadowColor: theme.colors.shadow }]}>
         <TouchableOpacity 
           style={styles.orderHeader}
           onPress={() => toggleOrderExpansion(order.id)}
         >
           <View style={styles.orderInfo}>
-            <Text style={styles.orderNumber}>Order #{order.id.slice(-8)}</Text>
-            <Text style={styles.orderDate}>
+            <Text style={[styles.orderNumber, { color: theme.colors.text }]}>Order #{order.id.slice(-8)}</Text>
+            <Text style={[styles.orderDate, { color: theme.colors.textSecondary }]}>
               {new Date(order.created_at).toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'short',
@@ -126,25 +128,25 @@ const OrdersScreen = () => {
               <Ionicons
                 name={getStatusIcon(order.status)}
                 size={16}
-                color="white"
+                color={theme.colors.white}
               />
-              <Text style={styles.statusText}>{order.status}</Text>
+              <Text style={[styles.statusText, { color: theme.colors.white }]}>{order.status}</Text>
             </View>
             <Ionicons 
               name={isExpanded ? 'chevron-up' : 'chevron-down'} 
               size={20} 
-              color="#6b7280" 
+              color={theme.colors.textSecondary} 
               style={styles.expandIcon}
             />
           </View>
         </TouchableOpacity>
 
         {/* Quick Summary */}
-        <View style={styles.orderSummary}>
-          <Text style={styles.itemCount}>
+        <View style={[styles.orderSummary, { borderBottomColor: theme.colors.border }]}>
+          <Text style={[styles.itemCount, { color: theme.colors.textSecondary }]}>
             {order.order_items?.length || 0} item{(order.order_items?.length || 0) !== 1 ? 's' : ''}
           </Text>
-          <Text style={styles.totalAmount}>${order.total_amount.toFixed(2)}</Text>
+          <Text style={[styles.totalAmount, { color: theme.colors.primary }]}>${order.total_amount.toFixed(2)}</Text>
         </View>
 
         {/* Expanded Details */}
@@ -152,15 +154,15 @@ const OrdersScreen = () => {
           <View style={styles.expandedContent}>
             <View style={styles.orderDetails}>
               <View style={styles.detailRow}>
-                <Ionicons name="receipt-outline" size={16} color="#6b7280" />
-                <Text style={styles.detailLabel}>Order ID:</Text>
-                <Text style={styles.detailValue}>{order.id}</Text>
+                <Ionicons name="receipt-outline" size={16} color={theme.colors.textSecondary} />
+                <Text style={[styles.detailLabel, { color: theme.colors.textSecondary }]}>Order ID:</Text>
+                <Text style={[styles.detailValue, { color: theme.colors.text }]}>{order.id}</Text>
               </View>
               
               <View style={styles.detailRow}>
-                <Ionicons name="time-outline" size={16} color="#6b7280" />
-                <Text style={styles.detailLabel}>Placed:</Text>
-                <Text style={styles.detailValue}>
+                <Ionicons name="time-outline" size={16} color={theme.colors.textSecondary} />
+                <Text style={[styles.detailLabel, { color: theme.colors.textSecondary }]}>Placed:</Text>
+                <Text style={[styles.detailValue, { color: theme.colors.text }]}>
                   {new Date(order.created_at).toLocaleDateString('en-US', {
                     weekday: 'long',
                     year: 'numeric',
@@ -173,59 +175,59 @@ const OrdersScreen = () => {
               </View>
 
               <View style={styles.detailRow}>
-                <Ionicons name="card-outline" size={16} color="#6b7280" />
-                <Text style={styles.detailLabel}>Payment:</Text>
-                <Text style={styles.detailValue}>Card ending in ****</Text>
+                <Ionicons name="card-outline" size={16} color={theme.colors.textSecondary} />
+                <Text style={[styles.detailLabel, { color: theme.colors.textSecondary }]}>Payment:</Text>
+                <Text style={[styles.detailValue, { color: theme.colors.text }]}>Card ending in ****</Text>
               </View>
             </View>
 
-            <View style={styles.orderItems}>
-              <Text style={styles.itemsHeader}>Items Ordered:</Text>
+            <View style={[styles.orderItems, { borderTopColor: theme.colors.border }]}>
+              <Text style={[styles.itemsHeader, { color: theme.colors.text }]}>Items Ordered:</Text>
               {order.order_items?.map((item, index) => (
                 <View key={index} style={styles.orderItem}>
                   <View style={styles.itemInfo}>
-                    <Text style={styles.itemName}>{item.products?.name}</Text>
-                    <Text style={styles.itemDescription}>
+                    <Text style={[styles.itemName, { color: theme.colors.text }]}>{item.products?.name}</Text>
+                    <Text style={[styles.itemDescription, { color: theme.colors.textSecondary }]}>
                       {item.products?.description || 'Premium barber product'}
                     </Text>
                   </View>
                   <View style={styles.itemDetails}>
-                    <Text style={styles.itemQuantity}>Qty: {item.quantity}</Text>
-                    <Text style={styles.itemPrice}>${item.price.toFixed(2)}</Text>
+                    <Text style={[styles.itemQuantity, { color: theme.colors.textSecondary }]}>Qty: {item.quantity}</Text>
+                    <Text style={[styles.itemPrice, { color: theme.colors.text }]}>${item.price.toFixed(2)}</Text>
                   </View>
                 </View>
               ))}
             </View>
 
-            <View style={styles.orderFooter}>
+            <View style={[styles.orderFooter, { borderTopColor: theme.colors.border }]}>
               <View style={styles.totalBreakdown}>
                 <View style={styles.totalRow}>
-                  <Text style={styles.totalLabel}>Subtotal:</Text>
-                  <Text style={styles.totalValue}>
+                  <Text style={[styles.totalLabel, { color: theme.colors.textSecondary }]}>Subtotal:</Text>
+                  <Text style={[styles.totalValue, { color: theme.colors.text }]}>
                     ${(order.total_amount * 0.9).toFixed(2)}
                   </Text>
                 </View>
                 <View style={styles.totalRow}>
-                  <Text style={styles.totalLabel}>Tax:</Text>
-                  <Text style={styles.totalValue}>
+                  <Text style={[styles.totalLabel, { color: theme.colors.textSecondary }]}>Tax:</Text>
+                  <Text style={[styles.totalValue, { color: theme.colors.text }]}>
                     ${(order.total_amount * 0.1).toFixed(2)}
                   </Text>
                 </View>
-                <View style={[styles.totalRow, styles.finalTotal]}>
-                  <Text style={styles.finalTotalLabel}>Total:</Text>
-                  <Text style={styles.finalTotalAmount}>${order.total_amount.toFixed(2)}</Text>
+                <View style={[styles.totalRow, styles.finalTotal, { borderTopColor: theme.colors.border }]}>
+                  <Text style={[styles.finalTotalLabel, { color: theme.colors.text }]}>Total:</Text>
+                  <Text style={[styles.finalTotalAmount, { color: theme.colors.primary }]}>${order.total_amount.toFixed(2)}</Text>
                 </View>
               </View>
 
               <View style={styles.orderActions}>
-                <TouchableOpacity style={styles.actionButton}>
-                  <Ionicons name="download-outline" size={16} color="#2563eb" />
-                  <Text style={styles.actionButtonText}>Download Receipt</Text>
+                <TouchableOpacity style={[styles.actionButton, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+                  <Ionicons name="download-outline" size={16} color={theme.colors.primary} />
+                  <Text style={[styles.actionButtonText, { color: theme.colors.text }]}>Download Receipt</Text>
                 </TouchableOpacity>
                 
-                <TouchableOpacity style={styles.actionButton}>
-                  <Ionicons name="refresh-outline" size={16} color="#059669" />
-                  <Text style={styles.actionButtonText}>Reorder</Text>
+                <TouchableOpacity style={[styles.actionButton, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+                  <Ionicons name="refresh-outline" size={16} color={theme.colors.success} />
+                  <Text style={[styles.actionButtonText, { color: theme.colors.text }]}>Reorder</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -236,33 +238,33 @@ const OrdersScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <View style={[styles.header, { backgroundColor: theme.colors.surface }]}>
         <TouchableOpacity 
           style={styles.backButton} 
           onPress={() => navigation.goBack()}
         >
-          <Ionicons name="arrow-back" size={24} color="#1f2937" />
+          <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
         </TouchableOpacity>
         <View style={styles.headerContent}>
-          <Text style={styles.title}>Order History</Text>
-          <Text style={styles.subtitle}>Track your purchases</Text>
+          <Text style={[styles.title, { color: theme.colors.text }]}>Order History</Text>
+          <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>Track your purchases</Text>
         </View>
       </View>
 
       <ScrollView
         style={styles.ordersList}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.colors.primary} colors={[theme.colors.primary]} />}
       >
         {loading ? (
-          <View style={styles.loadingContainer}>
-            <Text>Loading orders...</Text>
+          <View style={[styles.loadingContainer, { backgroundColor: theme.colors.background }]}>
+            <Text style={{ color: theme.colors.text }}>Loading orders...</Text>
           </View>
         ) : orders.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Ionicons name="bag-outline" size={64} color="#d1d5db" />
-            <Text style={styles.emptyTitle}>No orders found</Text>
-            <Text style={styles.emptySubtitle}>
+          <View style={[styles.emptyContainer, { backgroundColor: theme.colors.background }]}>
+            <Ionicons name="bag-outline" size={64} color={theme.colors.border} />
+            <Text style={[styles.emptyTitle, { color: theme.colors.text }]}>No orders found</Text>
+            <Text style={[styles.emptySubtitle, { color: theme.colors.textSecondary }]}>
               You haven't placed any orders yet. Start shopping to see your orders here.
             </Text>
           </View>
@@ -279,13 +281,11 @@ const OrdersScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
   },
   header: {
     paddingTop: 60,
     paddingHorizontal: 20,
     paddingBottom: 20,
-    backgroundColor: 'white',
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -299,11 +299,9 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#1f2937',
   },
   subtitle: {
     fontSize: 16,
-    color: '#6b7280',
     marginTop: 4,
   },
   ordersList: {
@@ -325,22 +323,18 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#374151',
     marginTop: 16,
   },
   emptySubtitle: {
     fontSize: 14,
-    color: '#6b7280',
     textAlign: 'center',
     marginTop: 8,
     paddingHorizontal: 40,
   },
   orderCard: {
-    backgroundColor: 'white',
     borderRadius: 12,
     padding: 16,
     marginTop: 16,
-    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
@@ -369,11 +363,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
   },
   itemCount: {
     fontSize: 14,
-    color: '#6b7280',
   },
   expandedContent: {
     paddingTop: 16,
@@ -388,20 +380,17 @@ const styles = StyleSheet.create({
   },
   detailLabel: {
     fontSize: 14,
-    color: '#6b7280',
     marginLeft: 8,
     marginRight: 8,
     minWidth: 60,
   },
   detailValue: {
     fontSize: 14,
-    color: '#374151',
     flex: 1,
   },
   itemsHeader: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1f2937',
     marginBottom: 12,
   },
   itemInfo: {
@@ -409,7 +398,6 @@ const styles = StyleSheet.create({
   },
   itemDescription: {
     fontSize: 12,
-    color: '#6b7280',
     marginTop: 2,
   },
   totalBreakdown: {
@@ -423,23 +411,19 @@ const styles = StyleSheet.create({
   },
   totalValue: {
     fontSize: 14,
-    color: '#374151',
   },
   finalTotal: {
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
     paddingTop: 8,
     marginTop: 8,
   },
   finalTotalLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#374151',
   },
   finalTotalAmount: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#2563eb',
   },
   orderActions: {
     flexDirection: 'row',
@@ -448,16 +432,15 @@ const styles = StyleSheet.create({
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f3f4f6',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
     gap: 4,
+    borderWidth: 1,
   },
   actionButtonText: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#374151',
   },
   orderInfo: {
     flex: 1,
@@ -465,12 +448,10 @@ const styles = StyleSheet.create({
   orderNumber: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1f2937',
     marginBottom: 4,
   },
   orderDate: {
     fontSize: 14,
-    color: '#6b7280',
   },
   statusBadge: {
     flexDirection: 'row',
@@ -482,13 +463,11 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 12,
     fontWeight: '500',
-    color: 'white',
     marginLeft: 4,
     textTransform: 'capitalize',
   },
   orderItems: {
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
     paddingTop: 12,
     marginBottom: 12,
   },
@@ -500,7 +479,6 @@ const styles = StyleSheet.create({
   },
   itemName: {
     fontSize: 14,
-    color: '#374151',
     flex: 1,
   },
   itemDetails: {
@@ -510,16 +488,13 @@ const styles = StyleSheet.create({
   },
   itemQuantity: {
     fontSize: 12,
-    color: '#6b7280',
   },
   itemPrice: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#1f2937',
   },
   orderFooter: {
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
     paddingTop: 12,
   },
   totalContainer: {
@@ -530,12 +505,10 @@ const styles = StyleSheet.create({
   totalLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#374151',
   },
   totalAmount: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#2563eb',
   },
 });
 

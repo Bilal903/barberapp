@@ -9,9 +9,11 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../hooks/useAuth';
+import { useTheme } from '../contexts/ThemeContext';
 
 const AuthScreen = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -20,6 +22,7 @@ const AuthScreen = () => {
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
   const { signIn, signUp } = useAuth();
+  const { theme } = useTheme();
 
   const handleAuth = async () => {
     if (!email || !password || (isSignUp && !fullName)) {
@@ -47,23 +50,24 @@ const AuthScreen = () => {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: theme.colors.background}]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.header}>
-          <Ionicons name="cut" size={48} color="#2563eb" />
-          <Text style={styles.title}>BarberApp</Text>
-          <Text style={styles.subtitle}>Your grooming companion</Text>
+          <Image source={require('../../assets/logo3.png')} style={styles.logo} />
+          <Text style={[styles.title, { color: theme.colors.text }]}>Alpha Men Saloon </Text>
+          <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>Your grooming companion</Text>
         </View>
 
         <View style={styles.form}>
           {isSignUp && (
-            <View style={styles.inputContainer}>
-              <Ionicons name="person-outline" size={20} color="#6b7280" style={styles.inputIcon} />
+            <View style={[styles.inputContainer, { backgroundColor: theme.colors.surface, shadowColor: theme.colors.shadow }]}>
+              <Ionicons name="person-outline" size={20} color={theme.colors.textSecondary} style={styles.inputIcon} />
               <TextInput
-                style={styles.input}
+                style={[styles.input, { color: theme.colors.text }]}
                 placeholder="Full Name"
+                placeholderTextColor={theme.colors.textSecondary}
                 value={fullName}
                 onChangeText={setFullName}
                 autoCapitalize="words"
@@ -71,11 +75,12 @@ const AuthScreen = () => {
             </View>
           )}
 
-          <View style={styles.inputContainer}>
-            <Ionicons name="mail-outline" size={20} color="#6b7280" style={styles.inputIcon} />
+          <View style={[styles.inputContainer, { backgroundColor: theme.colors.surface, shadowColor: theme.colors.shadow }]}>
+            <Ionicons name="mail-outline" size={20} color={theme.colors.textSecondary} style={styles.inputIcon} />
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: theme.colors.text }]}
               placeholder="Email"
+              placeholderTextColor={theme.colors.textSecondary}
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -83,11 +88,12 @@ const AuthScreen = () => {
             />
           </View>
 
-          <View style={styles.inputContainer}>
-            <Ionicons name="lock-closed-outline" size={20} color="#6b7280" style={styles.inputIcon} />
+          <View style={[styles.inputContainer, { backgroundColor: theme.colors.surface, shadowColor: theme.colors.shadow }]}>
+            <Ionicons name="lock-closed-outline" size={20} color={theme.colors.textSecondary} style={styles.inputIcon} />
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: theme.colors.text }]}
               placeholder="Password"
+              placeholderTextColor={theme.colors.textSecondary}
               value={password}
               onChangeText={setPassword}
               secureTextEntry
@@ -95,11 +101,11 @@ const AuthScreen = () => {
           </View>
 
           <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
+            style={[styles.button, { backgroundColor: theme.colors.primary, shadowColor: theme.colors.primary }, loading && styles.buttonDisabled]}
             onPress={handleAuth}
             disabled={loading}
           >
-            <Text style={styles.buttonText}>
+            <Text style={[styles.buttonText, { color: theme.colors.white }]}>
               {loading ? 'Loading...' : isSignUp ? 'Sign Up' : 'Sign In'}
             </Text>
           </TouchableOpacity>
@@ -108,7 +114,7 @@ const AuthScreen = () => {
             style={styles.switchButton}
             onPress={() => setIsSignUp(!isSignUp)}
           >
-            <Text style={styles.switchText}>
+            <Text style={[styles.switchText, { color: theme.colors.primary }]}>
               {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
             </Text>
           </TouchableOpacity>
@@ -121,7 +127,6 @@ const AuthScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
   },
   scrollContainer: {
     flexGrow: 1,
@@ -135,13 +140,17 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#1f2937',
     marginTop: 16,
   },
   subtitle: {
     fontSize: 16,
-    color: '#6b7280',
     marginTop: 8,
+  },
+  logo: {
+    width: 150,
+    height: 150,
+    resizeMode: 'contain',
+    marginBottom: 20,
   },
   form: {
     width: '100%',
@@ -149,12 +158,10 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
     borderRadius: 12,
     marginBottom: 16,
     paddingHorizontal: 16,
     paddingVertical: 4,
-    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 1,
@@ -170,15 +177,12 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     paddingVertical: 16,
-    color: '#1f2937',
   },
   button: {
-    backgroundColor: '#2563eb',
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
     marginTop: 8,
-    shadowColor: '#2563eb',
     shadowOffset: {
       width: 0,
       height: 2,
@@ -191,7 +195,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#9ca3af',
   },
   buttonText: {
-    color: 'white',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -200,7 +203,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   switchText: {
-    color: '#2563eb',
     fontSize: 14,
     fontWeight: '500',
   },

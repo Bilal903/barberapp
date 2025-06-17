@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Dimensions,
   RefreshControl,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -24,6 +25,10 @@ interface ReportData {
   averageOrderValue: number;
   topServices: Array<{ name: string; count: number; revenue: number }>;
   monthlyStats: Array<{ month: string; appointments: number; revenue: number }>;
+}
+
+interface ReportError {
+  message: string;
 }
 
 const ReportsScreen = () => {
@@ -131,8 +136,9 @@ const ReportsScreen = () => {
         topServices,
         monthlyStats,
       });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error fetching report data:', error);
+      Alert.alert('Error', (error as ReportError).message);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -325,15 +331,11 @@ const ReportsScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
   },
   header: {
     paddingTop: 60,
     paddingHorizontal: 20,
     paddingBottom: 20,
-    backgroundColor: 'white',
-    flexDirection: 'row',
-    alignItems: 'center',
   },
   backButton: {
     marginRight: 16,
@@ -345,11 +347,9 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#1f2937',
   },
   subtitle: {
     fontSize: 16,
-    color: '#6b7280',
     marginTop: 4,
   },
   periodSelector: {
@@ -382,26 +382,31 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   section: {
-    backgroundColor: 'white',
-    marginTop: 16,
-    paddingVertical: 20,
+    paddingHorizontal: 20,
+    marginTop: 24,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1f2937',
-    paddingHorizontal: 20,
     marginBottom: 16,
   },
   statsGrid: {
-    paddingHorizontal: 20,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
   },
   statCard: {
-    backgroundColor: '#f9fafb',
     borderRadius: 12,
     padding: 16,
-    marginBottom: 12,
-    borderLeftWidth: 4,
+    width: '48%',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   statContent: {
     flexDirection: 'row',
@@ -413,17 +418,15 @@ const styles = StyleSheet.create({
   },
   statTitle: {
     fontSize: 14,
-    color: '#6b7280',
     marginBottom: 4,
   },
   statValue: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 2,
   },
   statSubtitle: {
     fontSize: 12,
-    color: '#9ca3af',
+    marginTop: 4,
   },
   statIcon: {
     width: 48,
@@ -439,7 +442,6 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 16,
-    color: '#6b7280',
   },
   emptyContainer: {
     paddingHorizontal: 20,
@@ -448,7 +450,6 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#6b7280',
     marginTop: 8,
   },
   servicesList: {
@@ -459,13 +460,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
   },
   serviceRank: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#2563eb',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -473,7 +472,6 @@ const styles = StyleSheet.create({
   rankNumber: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: 'white',
   },
   serviceInfo: {
     flex: 1,
@@ -481,12 +479,10 @@ const styles = StyleSheet.create({
   serviceName: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#1f2937',
     marginBottom: 2,
   },
   serviceStats: {
     fontSize: 12,
-    color: '#6b7280',
   },
   serviceRevenue: {
     alignItems: 'flex-end',
@@ -494,7 +490,6 @@ const styles = StyleSheet.create({
   revenueAmount: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#059669',
   },
   trendsContainer: {
     flexDirection: 'row',
@@ -508,7 +503,6 @@ const styles = StyleSheet.create({
   trendMonth: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#6b7280',
     marginBottom: 8,
   },
   trendBars: {
@@ -518,7 +512,6 @@ const styles = StyleSheet.create({
   trendBar: {
     width: 24,
     height: 60,
-    backgroundColor: '#f3f4f6',
     borderRadius: 12,
     justifyContent: 'flex-end',
     marginBottom: 4,
@@ -531,11 +524,9 @@ const styles = StyleSheet.create({
   trendValue: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#1f2937',
   },
   trendRevenue: {
     fontSize: 10,
-    color: '#6b7280',
   },
   exportButton: {
     flexDirection: 'row',

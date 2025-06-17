@@ -24,6 +24,10 @@ interface NotificationPreferences {
   sms_notifications: boolean;
 }
 
+interface NotificationError {
+  message: string;
+}
+
 const NotificationPreferencesScreen = () => {
   const { user } = useAuth();
   const navigation = useNavigation();
@@ -56,8 +60,9 @@ const NotificationPreferencesScreen = () => {
       if (data) {
         setPreferences(data);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error fetching preferences:', error);
+      Alert.alert('Error', (error as NotificationError).message);
     }
   };
 
@@ -306,13 +311,11 @@ const NotificationPreferencesScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
   },
   header: {
     paddingTop: 60,
     paddingHorizontal: 20,
     paddingBottom: 20,
-    backgroundColor: 'white',
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -326,31 +329,26 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#1f2937',
   },
   subtitle: {
     fontSize: 16,
-    color: '#6b7280',
     marginTop: 4,
   },
   content: {
     flex: 1,
   },
   section: {
-    backgroundColor: 'white',
     marginTop: 16,
     paddingVertical: 20,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1f2937',
     paddingHorizontal: 20,
     marginBottom: 4,
   },
   sectionSubtitle: {
     fontSize: 14,
-    color: '#6b7280',
     paddingHorizontal: 20,
     marginBottom: 16,
   },
@@ -380,12 +378,10 @@ const styles = StyleSheet.create({
   preferenceTitle: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#1f2937',
     marginBottom: 2,
   },
   preferenceSubtitle: {
     fontSize: 14,
-    color: '#6b7280',
   },
   quickAction: {
     flexDirection: 'row',
@@ -393,31 +389,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
   },
   quickActionText: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#374151',
     marginLeft: 12,
   },
   saveSection: {
     padding: 20,
-    backgroundColor: 'white',
     marginTop: 16,
     marginBottom: 40,
   },
   saveButton: {
-    backgroundColor: '#2563eb',
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
   },
   saveButtonDisabled: {
-    backgroundColor: '#9ca3af',
+    opacity: 0.5,
   },
   saveButtonText: {
-    color: 'white',
     fontSize: 16,
     fontWeight: '600',
   },

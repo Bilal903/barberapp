@@ -1,5 +1,5 @@
 export type RootStackParamList = {
-  Main: undefined;
+  Main: { screen?: keyof TabParamList; params?: object; };
   Auth: undefined;
   Appointments: undefined;
   Orders: undefined;
@@ -7,15 +7,25 @@ export type RootStackParamList = {
   NotificationPreferences: undefined;
   Reports: undefined;
   CustomerManagement: undefined;
+  DealsHistory: undefined;
+  DealsManagement: undefined;
 };
 
 export type TabParamList = {
   Home: undefined;
   Book: undefined;
-  Shop: undefined;
+  Deals: undefined;
   Membership: undefined;
   Profile: undefined;
   Admin: undefined;
+};
+
+export type MainTabParamList = {
+  Home: undefined;
+  Appointment: undefined;
+  Deals: undefined;
+  Membership: undefined;
+  Profile: undefined;
 };
 
 declare global {
